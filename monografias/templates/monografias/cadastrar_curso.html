@@ -5,7 +5,7 @@
     <title> Cadastrar Curso - Repositório de TCC </title>
 </head>
 <body>
-    <h1> Cadastrar Curso </h1>
+    <h1>{% if form.instance.pk %}Editar curso{% else %}Cadastrar curso{% endif %}</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
