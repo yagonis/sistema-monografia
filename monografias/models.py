@@ -16,6 +16,7 @@ class Monografia(models.Model):
     class Status(models.TextChoices):
         RASCUNHO = "rascunho", "Rascunho"
         EM_AVALIACAO = "em_avaliacao", "Em Avaliação pelo orientador"
+        APROVADA_ORIENTADOR = "aprovada_orientador", "Aprovada pelo orientador"
 
     titulo = models.CharField(max_length=250)
     resumo = models.TextField(blank=True)
@@ -48,6 +49,11 @@ class Monografia(models.Model):
         max_length=20,
         choices=Status.choices,
         default=Status.RASCUNHO,
+    )
+    aprovado_em = models.DateTimeField(null=True, blank=True, editable=False)
+    aprovado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name='aprovacoes_orientador', null=True, blank=True, editable=False,
     )
 
     def __str__(self):

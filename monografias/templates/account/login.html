@@ -1,0 +1,11 @@
+{% extends 'monografias/base.html' %}
+{% block content %}
+<h1>Entrar</h1>
+<form method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+    <button type="submit">Entrar</button>
+</form>
+<p>Contas e perfis são cadastrados pela administração.</p>
+{% endblock %}

@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>Meus rascunhos</h1>
+    <p><a href="{% url 'inicio' %}">Painel</a> — <a href="{% url 'minhas_monografias' %}">Acompanhar todas as monografias</a></p>
 
     {% for mensagem in messages %}
         <p role="status">{{ mensagem }}</p>

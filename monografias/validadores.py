@@ -6,7 +6,7 @@ from pypdf.errors import PdfReadError
 
 def validar_pdf(arquivo):
     if arquivo.size > 50 * 1024 * 1024: 
-        raise validationError("O arquivo PDF não pode ter mais de 50MB.")
+        raise ValidationError("O arquivo PDF não pode ter mais de 50MB.")
 
     if Path(arquivo.name).suffix.lower() != ".pdf":
         raise ValidationError("O arquivo deve ter a extensão .pdf.")

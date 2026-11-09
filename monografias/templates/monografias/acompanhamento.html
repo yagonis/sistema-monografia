@@ -1,0 +1,13 @@
+{% extends 'monografias/base.html' %}
+{% block content %}
+<h1>Minhas monografias</h1>
+{% for trabalho in trabalhos %}
+<article>
+    <h2>{{ trabalho.titulo }}</h2>
+    <p>{{ trabalho.curso.nome }} — {{ trabalho.get_status_display }}</p>
+    <p>Orientador: {{ trabalho.orientador|default:'Não definido' }}</p>
+    <a href="{% url 'baixar_pdf' trabalho.pk %}">Baixar PDF</a>
+    {% if trabalho.status == 'rascunho' %}<a href="{% url 'editar_rascunho' trabalho.pk %}">Editar rascunho</a>{% endif %}
+</article>
+{% empty %}<p>Você ainda não possui monografias.</p>{% endfor %}
+{% endblock %}
