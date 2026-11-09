@@ -134,3 +134,5 @@ MAILERS = {
 }
 
 AUTH_USER_MODEL = 'usuarios.Usuario' #o modelo de usuário personalizado que você criou no app "usuarios"
+
+MEDIA_ROOT = BASE_DIR / "uploads_privados"

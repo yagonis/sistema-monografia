@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Editar rascunho</title>
+</head>
+<body>
+    <h1>Editar rascunho</h1>
+    {% for mensagem in messages %}
+        <p role="status">{{ mensagem }}</p>
+    {% endfor %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <p>Para manter o PDF atual, deixe o campo de arquivo vazio.</p>
+        <button type="submit">Salvar alterações</button>
+        <a href="{% url 'meus_rascunhos' %}">Cancelar</a>
+    </form>
+</body>
+</html>
