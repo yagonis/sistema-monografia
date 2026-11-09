@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title> Cursos - Repositório de TCC </title>
+</head>
+<body>
+    <h1> Cursos cadastrados</h1>
+    <ul>
+        {% for curso in cursos %}
+            <li>
+                {{ curso.codigo }} - {{ curso.nome }}
+                {% if perms.monografias.delete_curso %}
+                    <a href="{% url 'excluir_curso' curso.pk %}"> Excluir </a>
+                {% endif %}
+                {% if perms.monografias.change_curso %}
+                    <a href="{% url 'editar_curso' curso.pk %}"> Editar </a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li> Nenhum curso cadastrado. </li>
+        {% endfor %}
+    </ul>
+    {% if perms.monografias.add_curso %}
+        <p><a href="{% url 'cadastrar_curso' %}"> Cadastrar novo curso</a></p>
+    {% endif %}
+</body>

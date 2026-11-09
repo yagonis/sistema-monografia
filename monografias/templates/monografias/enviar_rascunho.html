@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Enviar rascunho</title>
+</head>
+<body>
+    <h1>Enviar rascunho</h1>
+
+    {% for mensagem in messages %}
+        <p role="status">{{ mensagem }}</p>
+    {% endfor %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar rascunho</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Meus rascunhos</title>
+</head>
+<body>
+    <h1>Meus rascunhos</h1>
+
+    {% for mensagem in messages %}
+        <p role="status">{{ mensagem }}</p>
+    {% endfor %}
+
+    <p><a href="{% url 'enviar_rascunho' %}">Enviar rascunho</a></p>
+
+    <ul>
+        {% for rascunho in rascunhos %}
+            <li>
+                {{ rascunho.titulo }} — {{ rascunho.curso.nome }}
+                <a href="{% url 'editar_rascunho' rascunho.pk %}">Editar</a>
+                <form action="{% url 'submeter_rascunho' rascunho.pk %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Submeter para avaliação</button>
+                </form>
+            </li>
+        {% empty %}
+            <li>Você ainda não tem rascunhos salvos.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
