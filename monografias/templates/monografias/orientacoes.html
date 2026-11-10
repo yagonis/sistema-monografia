@@ -1,0 +1,19 @@
+{% extends 'monografias/base.html' %}
+{% block content %}
+<h1>Minhas orientações</h1>
+<p>A aprovação do orientador permite avançar para a etapa de banca. A publicação depende da aprovação final e dos documentos exigidos.</p>
+{% for trabalho in trabalhos %}
+<article>
+    <h2>{{ trabalho.titulo }}</h2>
+    <p>Autor: {{ trabalho.autor.get_full_name|default:trabalho.autor.username }} — Curso: {{ trabalho.curso.nome }}</p>
+    <p>{{ trabalho.resumo }}</p>
+    <p>Status: {{ trabalho.get_status_display }}</p>
+    <a href="{% url 'baixar_pdf' trabalho.pk %}">Baixar PDF</a>
+    {% if trabalho.status == 'em_avaliacao' %}
+    <form method="post" action="{% url 'aprovar_orientacao' trabalho.pk %}">
+        {% csrf_token %}<button type="submit">Aprovar submissão como orientador</button>
+    </form>
+    {% else %}<p>Aprovação registrada em {{ trabalho.aprovado_em }}.</p>{% endif %}
+</article>
+{% empty %}<p>Nenhuma monografia submetida à sua orientação.</p>{% endfor %}
+{% endblock %}

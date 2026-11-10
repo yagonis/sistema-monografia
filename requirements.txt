@@ -1,0 +1,5 @@
+# Versões/faixas validadas com Python 3.12; detalhes em DESENVOLVIMENTO.md.
+Django>=6.1.3,<6.2
+django-allauth>=65.21,<66
+pypdf>=7,<8
+psycopg[binary]>=3.3,<4

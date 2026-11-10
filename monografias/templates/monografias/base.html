@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Repositório de Monografias</title></head>
+<body>
+<nav aria-label="Principal">
+    <a href="{% url 'inicio' %}">Início</a>
+    <a href="{% url 'listar_cursos' %}">Cursos</a>
+    {% if user.is_authenticated %}
+        {% if user.eh_aluno %}
+            <a href="{% url 'minhas_monografias' %}">Minhas monografias</a>
+            <a href="{% url 'meus_rascunhos' %}">Meus rascunhos</a>
+            <a href="{% url 'enviar_rascunho' %}">Novo rascunho</a>
+        {% endif %}
+        {% if user.eh_professor %}<a href="{% url 'orientacoes' %}">Minhas orientações</a>{% endif %}
+        <span>{{ user.get_full_name|default:user.username }}</span>
+        <form action="{% url 'account_logout' %}" method="post">{% csrf_token %}<button type="submit">Sair</button></form>
+    {% else %}<a href="{% url 'account_login' %}">Entrar</a>{% endif %}
+</nav>
+{% for mensagem in messages %}<p role="status">{{ mensagem }}</p>{% endfor %}
+<main>{% block content %}{% endblock %}</main>
+</body>
+</html>
