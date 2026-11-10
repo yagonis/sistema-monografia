@@ -58,3 +58,28 @@ class Monografia(models.Model):
 
     def __str__(self):
         return self.titulo
+
+class Banca(models.Model):
+    class Status(models.TextChoices):
+        EM_PREPARACAO = "em_preparacao", "Em Preparação"
+        AGENDADA = "agendada", "Agendada"
+        REALIZADA = "realizada", "Realizada"
+        CANCELADA = "cancelada", "Cancelada"
+
+    monografia = models.ForeignKey(
+        Monografia,
+        on_delete=models.PROTECT,
+        related_name='bancas',
+    )
+
+    data_hora = models.DateTimeField("Data e hora da defesa")
+    local = models.CharField("Local presencial", max_length=250, blank=True)
+    link = models.URLField("Link de videoconferência", blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.EM_PREPARACAO,
+    )
+
+    def __str__(self):
+        return f"Banca de {self.monografia.titulo} em {self.data_hora}"

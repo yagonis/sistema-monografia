@@ -6,8 +6,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db import transaction
-from .models import Curso, Monografia
-from .forms import CursoForm, MonografiaForm
+from .models import Curso, Monografia, Banca
+from .forms import CursoForm, MonografiaForm, BancaForm
 from django.utils import timezone
 from usuarios.decorators import exige_perfil
 
@@ -174,3 +174,29 @@ def baixar_pdf(request, pk):
     except OSError as exc:
         raise Http404('Arquivo indisponível') from exc
     return FileResponse(arquivo, as_attachment=True, filename=f'monografia-{trabalho.pk}.pdf', content_type='application/pdf')
+
+@exige_perfil('eh_professor')
+@require_http_methods(["GET", "POST"])
+@transaction.atomic
+def preparar_banca(request, pk):
+    trabalho = get_object_or_404(
+        Monografia.objects.select_for_update(), pk=pk, orientador=request.user,
+        status=Monografia.Status.APROVADA_ORIENTADOR,
+    )
+
+
+    if trabalho.bancas.exclude(status=Banca.Status.CANCELADA).exists():
+        messages.info(request, 'Já existe uma banca para esta monografia.')
+        return redirect("orientacoes")
+    if request.method == "POST":
+        form = BancaForm(request.POST)
+        if form.is_valid():
+            banca = form.save(commit=False)
+            banca.monografia = trabalho
+            banca.save()
+            messages.success(request, 'Proposta de banca salva.')
+            return redirect("orientacoes")
+    else:
+        form = BancaForm()
+
+    return render(request, 'monografias/preparar_banca.html', {'form': form, 'trabalho': trabalho})
