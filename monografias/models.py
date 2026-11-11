@@ -56,5 +56,9 @@ class Monografia(models.Model):
         related_name='aprovacoes_orientador', null=True, blank=True, editable=False,
     )
 
+    @property
+    def pode_editar(self):
+        return self.status == self.Status.RASCUNHO
+
     def __str__(self):
         return self.titulo

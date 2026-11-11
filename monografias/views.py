@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST, require_http_methods
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from .models import Curso, Monografia
 from .forms import CursoForm, MonografiaForm
 from django.utils import timezone
@@ -48,7 +49,13 @@ def excluir_curso(request, pk):
     curso = get_object_or_404(Curso, pk=pk)
 
     if request.method == "POST":
-        curso.delete()
+        try:
+            curso.delete()
+        except ProtectedError:
+            return render(request, 'monografias/excluir_curso.html', {
+                'curso': curso,
+                'erro': 'Não é possível excluir este curso porque existem monografias vinculadas.',
+            }, status=409)
         return redirect("listar_cursos")
     return render(request, "monografias/excluir_curso.html", {"curso": curso})
 

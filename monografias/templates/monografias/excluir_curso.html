@@ -6,6 +6,7 @@
 </head>
 <body>
     <h1>Excluir curso</h1>
+    {% if erro %}<p role="alert">{{ erro }}</p>{% endif %}
     <p>Deseja excluir o curso <strong>{{ curso.codigo }} — {{ curso.nome }}</strong>?</p>
 
     <form method="post">
