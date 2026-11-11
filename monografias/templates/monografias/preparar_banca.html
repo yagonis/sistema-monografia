@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Preparar banca</title>
+</head>
+<body>
+    <h1>Preparar banca</h1>
+    <p>Monografia: <strong>{{ trabalho.titulo }}</strong></p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar proposta</button>
+        <a href="{% url 'orientacoes' %}">Cancelar</a>
+    </form>
+</body>
+</html>

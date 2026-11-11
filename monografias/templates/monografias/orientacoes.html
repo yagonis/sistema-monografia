@@ -14,6 +14,9 @@
         {% csrf_token %}<button type="submit">Aprovar submissão como orientador</button>
     </form>
     {% else %}<p>Aprovação registrada em {{ trabalho.aprovado_em }}.</p>{% endif %}
+    {% if trabalho.status == "aprovada_orientador" %}
+        <a href="{% url 'preparar_banca' trabalho.pk %}">Preparar banca</a>
+    {% endif %}
 </article>
 {% empty %}<p>Nenhuma monografia submetida à sua orientação.</p>{% endfor %}
 {% endblock %}

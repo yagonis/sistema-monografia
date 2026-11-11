@@ -17,4 +17,5 @@ urlpatterns = [
     path("rascunhos/", views.meus_rascunhos, name="meus_rascunhos"),
     path("rascunhos/<int:pk>/editar/", views.editar_rascunho, name="editar_rascunho"),
     path("rascunhos/<int:pk>/submeter/", views.submeter_rascunho, name="submeter_rascunho"),
+    path("orientacoes/<int:pk>/banca/preparar/", views.preparar_banca, name="preparar_banca"),
  ]
