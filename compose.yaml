@@ -1,0 +1,80 @@
+name: monografias-backend
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: repositorio_tcc
+      POSTGRES_USER: repositorio_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U repositorio_app -d repositorio_tcc']
+      interval: 3s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      retries: 20
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: repositorio
+      RABBITMQ_DEFAULT_PASS: ${BROKER_PASSWORD:?Defina BROKER_PASSWORD}
+  backend:
+    build: .
+    environment: &environment
+      DB_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: amqp://repositorio:${BROKER_PASSWORD}@rabbitmq:5672//
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Defina DJANGO_SECRET_KEY}
+      ADMIN_NETWORKS: ${ADMIN_NETWORKS:-127.0.0.1/32,::1/128}
+      REPOSITORIO_URL: http://repositorio:8001
+      REPOSITORIO_INTEGRATION_KEY: ${REPOSITORIO_INTEGRATION_KEY:?Defina REPOSITORIO_INTEGRATION_KEY}
+    ports: ['127.0.0.1:8000:8000']
+    volumes: [uploads:/app/uploads_privados]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      rabbitmq: {condition: service_started}
+  worker:
+    build: .
+    command: celery -A config worker --loglevel=info --concurrency=2
+    environment: *environment
+    volumes: [uploads:/app/uploads_privados]
+    depends_on: [backend]
+  beat:
+    build: .
+    command: celery -A config beat --loglevel=info --schedule=/tmp/celerybeat
+    environment: *environment
+    depends_on: [backend]
+  busca-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: repositorio_busca
+      POSTGRES_USER: busca
+      POSTGRES_PASSWORD: ${BUSCA_PASSWORD:?Defina BUSCA_PASSWORD}
+    volumes: [busca-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U busca -d repositorio_busca']
+      interval: 3s
+      retries: 30
+  repositorio:
+    build: .
+    command: gunicorn services.repositorio.wsgi:application --bind 0.0.0.0:8001 --workers 3
+    environment:
+      DJANGO_SETTINGS_MODULE: services.repositorio.settings
+      REPOSITORIO_PASSWORD: ${BUSCA_PASSWORD}
+      REPOSITORIO_REDIS_URL: redis://redis:6379/1
+      REPOSITORIO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      REPOSITORIO_INTEGRATION_KEY: ${REPOSITORIO_INTEGRATION_KEY}
+    ports: ['127.0.0.1:8001:8001']
+    depends_on:
+      busca-db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+volumes:
+  postgres-data:
+  uploads:
+  busca-data:

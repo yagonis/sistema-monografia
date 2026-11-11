@@ -10,7 +10,7 @@ class CursoForm(forms.ModelForm):
 class MonografiaForm(forms.ModelForm):
     class Meta:
         model = Monografia
-        fields = ["titulo", "resumo", "curso", "orientador", "arquivo"]
+        fields = ["titulo", "resumo", "palavras_chave", "curso", "orientador", "arquivo"]
         widgets = {"arquivo": forms.FileInput(),}
     
     def clean(self):

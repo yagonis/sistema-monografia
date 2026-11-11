@@ -30,6 +30,8 @@ class DadosMonografiaTests(TestCase):
         cls.curso = Curso.objects.create(nome='Sistemas', codigo='SI')
 
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.diretorio = tempfile.TemporaryDirectory()
         self.addCleanup(self.diretorio.cleanup)
         self.configuracao = override_settings(MEDIA_ROOT=self.diretorio.name)
@@ -146,7 +148,6 @@ class FluxoOrientacaoTests(DadosMonografiaTests):
             resposta = self.client.get(url)
             self.assertEqual(resposta.status_code, 200)
             self.assertEqual(b''.join(resposta.streaming_content), self.pdf)
-            resposta.close()
         self.client.force_login(self.sem_perfil)
         self.assertEqual(self.client.get(url).status_code, 404)
 
@@ -187,7 +188,7 @@ class FluxoOrientacaoTests(DadosMonografiaTests):
         self.client.force_login(self.aluno)
         resposta = self.client.post(reverse('enviar_rascunho'), {
             'titulo': 'Fluxo completo', 'curso': self.curso.pk, 'orientador': self.professor.pk,
-            'arquivo': SimpleUploadedFile('novo.pdf', self.pdf),
+            'arquivo': SimpleUploadedFile('novo.pdf', self.pdf + b'\n% Nova monografia\n'),
         })
         self.assertRedirects(resposta, reverse('meus_rascunhos'))
         trabalho = Monografia.objects.get(titulo='Fluxo completo')
@@ -319,7 +320,6 @@ class CoordenacaoTests(DadosMonografiaTests):
         resposta = self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk]))
         self.assertEqual(resposta.status_code, 200)
         self.assertEqual(b''.join(resposta.streaming_content), self.pdf)
-        resposta.close()
         outro_curso = Curso.objects.create(nome='Outro curso', codigo='OUTRO')
         self.trabalho.curso = outro_curso
         self.trabalho.save()
