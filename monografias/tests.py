@@ -286,7 +286,7 @@ class RegrasIntegridadeTests(DadosMonografiaTests):
     def test_curso_vinculado_nao_e_excluido_e_exibe_mensagem(self):
         resposta = self.client.post(reverse('excluir_curso', args=[self.curso.pk]))
         self.assertEqual(resposta.status_code, 409)
-        self.assertContains(resposta, 'Não é possível excluir este curso porque existem monografias vinculadas.', status_code=409)
+        self.assertContains(resposta, 'Não é possível excluir este curso porque existem registros acadêmicos vinculados.', status_code=409)
         self.assertTrue(Curso.objects.filter(pk=self.curso.pk).exists())
         self.assertTrue(Monografia.objects.filter(pk=self.trabalho.pk).exists())
 
@@ -303,3 +303,62 @@ class RegrasIntegridadeTests(DadosMonografiaTests):
     def test_aluno_sem_permissao_nao_exclui_curso(self):
         self.client.force_login(self.aluno)
         self.assertEqual(self.client.post(reverse('excluir_curso', args=[self.curso.pk])).status_code, 403)
+
+
+class CoordenacaoTests(DadosMonografiaTests):
+    def setUp(self):
+        super().setUp()
+        self.coordenador = get_user_model().objects.create_user('coordenador')
+        self.coordenador.groups.add(Group.objects.get(name='Coordenadores'))
+        self.curso.coordenador = self.coordenador
+        self.curso.save()
+        self.client.force_login(self.coordenador)
+
+    def test_lista_e_download_apenas_do_curso_vinculado(self):
+        self.assertContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        resposta = self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(b''.join(resposta.streaming_content), self.pdf)
+        resposta.close()
+        outro_curso = Curso.objects.create(nome='Outro curso', codigo='OUTRO')
+        self.trabalho.curso = outro_curso
+        self.trabalho.save()
+        self.assertNotContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_rascunho_nao_e_exposto_a_coordenacao(self):
+        self.trabalho.status = 'rascunho'
+        self.trabalho.save()
+        self.assertNotContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_grupo_sem_vinculo_nao_concede_acesso_a_trabalhos(self):
+        self.curso.coordenador = None
+        self.curso.save()
+        self.assertContains(self.client.get(reverse('coordenacao')), 'Nenhum curso vinculado')
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_vinculo_sem_grupo_nao_concede_acesso(self):
+        self.coordenador.groups.clear()
+        self.assertEqual(self.client.get(reverse('coordenacao')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_aluno_e_professor_nao_entram_na_area_sem_grupo(self):
+        for usuario in [self.aluno, self.professor]:
+            self.client.force_login(usuario)
+            self.assertEqual(self.client.get(reverse('coordenacao')).status_code, 403)
+
+    def test_coordenador_nao_aprova_orientacao_nem_edita_monografia(self):
+        self.assertEqual(self.client.post(reverse('aprovar_orientacao', args=[self.trabalho.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse('editar_rascunho', args=[self.trabalho.pk])).status_code, 403)
+
+    def test_visitante_redirecionado_para_login(self):
+        self.client.logout()
+        resposta = self.client.get(reverse('coordenacao'))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertIn('/contas/login/', resposta.url)
+
+    def test_painel_mostra_area_da_coordenacao(self):
+        resposta = self.client.get(reverse('inicio'))
+        self.assertContains(resposta, 'Área da coordenação')
+        self.assertNotContains(resposta, 'Solicite à administração a atribuição')

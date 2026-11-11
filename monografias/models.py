@@ -7,6 +7,11 @@ from .validadores import validar_pdf
 class Curso(models.Model):
     nome = models.CharField(max_length=150)
     codigo = models.CharField(max_length=20, unique=True)
+    coordenador = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+        related_name='cursos_coordenados',
+        limit_choices_to={'groups__name': 'Coordenadores', 'is_active': True},
+    )
 
     def __str__(self):
         return f"{self.codigo} - {self.nome}"

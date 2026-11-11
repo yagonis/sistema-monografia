@@ -11,6 +11,7 @@ from .models import Curso, Monografia
 from .forms import CursoForm, MonografiaForm
 from django.utils import timezone
 from usuarios.decorators import exige_perfil
+from .permissoes import monografias_da_coordenacao
 
 def inicio(request):
     return render(request, 'monografias/inicio.html')
@@ -54,7 +55,7 @@ def excluir_curso(request, pk):
         except ProtectedError:
             return render(request, 'monografias/excluir_curso.html', {
                 'curso': curso,
-                'erro': 'Não é possível excluir este curso porque existem monografias vinculadas.',
+                'erro': 'Não é possível excluir este curso porque existem registros acadêmicos vinculados.',
             }, status=409)
         return redirect("listar_cursos")
     return render(request, "monografias/excluir_curso.html", {"curso": curso})
@@ -138,6 +139,15 @@ def orientacoes(request):
     return render(request, 'monografias/orientacoes.html', {'trabalhos': trabalhos})
 
 
+@exige_perfil('eh_coordenador')
+def coordenacao(request):
+    trabalhos = monografias_da_coordenacao(request.user).select_related(
+        'autor', 'curso', 'orientador',
+    ).order_by('curso__nome', 'titulo')
+    cursos = Curso.objects.filter(coordenador=request.user).order_by('nome')
+    return render(request, 'monografias/coordenacao.html', {'trabalhos': trabalhos, 'cursos': cursos})
+
+
 @exige_perfil('eh_professor')
 @require_POST
 @transaction.atomic
@@ -174,7 +184,8 @@ def baixar_pdf(request, pk):
         request.user.eh_professor and trabalho.orientador_id == request.user.pk
         and trabalho.status in [Monografia.Status.EM_AVALIACAO, Monografia.Status.APROVADA_ORIENTADOR]
     )
-    if not (autor or orientador):
+    coordenador = monografias_da_coordenacao(request.user).filter(pk=trabalho.pk).exists()
+    if not (autor or orientador or coordenador):
         raise Http404
     try:
         arquivo = trabalho.arquivo.open('rb')

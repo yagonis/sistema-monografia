@@ -5,7 +5,10 @@ from .models import Curso
 from .forms import MonografiaForm
 from .models import Monografia
 
-admin.site.register(Curso)
+@admin.register(Curso)
+class CursoAdmin(admin.ModelAdmin):
+    list_display = ['nome', 'codigo', 'coordenador']
+    search_fields = ['nome', 'codigo']
 
 @admin.register(Monografia)
 class MonografiaAdmin(admin.ModelAdmin):
