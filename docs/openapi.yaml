@@ -1,0 +1,2847 @@
+openapi: 3.0.3
+info:
+  title: API Repositório de Monografias
+  version: 1.0.0
+paths:
+  /api/alunos/:
+    get:
+      operationId: alunos_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - alunos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAlunoList'
+          description: ''
+    post:
+      operationId: alunos_create
+      tags:
+      - alunos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Aluno'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+  /api/alunos/{id}/:
+    get:
+      operationId: alunos_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil aluno.
+        required: true
+      tags:
+      - alunos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+    patch:
+      operationId: alunos_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil aluno.
+        required: true
+      tags:
+      - alunos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAluno'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Aluno'
+          description: ''
+    delete:
+      operationId: alunos_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil aluno.
+        required: true
+      tags:
+      - alunos
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auditoria/:
+    get:
+      operationId: auditoria_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - auditoria
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditoriaList'
+          description: ''
+  /api/auditoria/{id}/:
+    get:
+      operationId: auditoria_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este auditoria.
+        required: true
+      tags:
+      - auditoria
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auditoria'
+          description: ''
+  /api/avaliacoes/:
+    get:
+      operationId: avaliacoes_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - avaliacoes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAvaliacaoList'
+          description: ''
+    post:
+      operationId: avaliacoes_create
+      tags:
+      - avaliacoes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Avaliacao'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+  /api/avaliacoes/{id}/:
+    get:
+      operationId: avaliacoes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este avaliacao.
+        required: true
+      tags:
+      - avaliacoes
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    patch:
+      operationId: avaliacoes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este avaliacao.
+        required: true
+      tags:
+      - avaliacoes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAvaliacao'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Avaliacao'
+          description: ''
+    delete:
+      operationId: avaliacoes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este avaliacao.
+        required: true
+      tags:
+      - avaliacoes
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/bancas/:
+    get:
+      operationId: bancas_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - bancas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBancaList'
+          description: ''
+    post:
+      operationId: bancas_create
+      tags:
+      - bancas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Banca'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banca'
+          description: ''
+  /api/bancas/{id}/:
+    get:
+      operationId: bancas_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este banca.
+        required: true
+      tags:
+      - bancas
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banca'
+          description: ''
+    patch:
+      operationId: bancas_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este banca.
+        required: true
+      tags:
+      - bancas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBanca'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBanca'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBanca'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banca'
+          description: ''
+    delete:
+      operationId: bancas_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este banca.
+        required: true
+      tags:
+      - bancas
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/bancas/{id}/agendar/:
+    post:
+      operationId: bancas_agendar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este banca.
+        required: true
+      tags:
+      - bancas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Banca'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banca'
+          description: ''
+  /api/bancas/{id}/cancelar/:
+    post:
+      operationId: bancas_cancelar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este banca.
+        required: true
+      tags:
+      - bancas
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Banca'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Banca'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banca'
+          description: ''
+  /api/conta/:
+    get:
+      operationId: conta_retrieve
+      tags:
+      - conta
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: conta_create
+      tags:
+      - conta
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    delete:
+      operationId: conta_destroy
+      tags:
+      - conta
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/cursos/:
+    get:
+      operationId: cursos_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - cursos
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCursoList'
+          description: ''
+    post:
+      operationId: cursos_create
+      tags:
+      - cursos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Curso'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Curso'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Curso'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+          description: ''
+  /api/cursos/{id}/:
+    get:
+      operationId: cursos_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este curso.
+        required: true
+      tags:
+      - cursos
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+          description: ''
+    patch:
+      operationId: cursos_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este curso.
+        required: true
+      tags:
+      - cursos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCurso'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCurso'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCurso'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Curso'
+          description: ''
+    delete:
+      operationId: cursos_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este curso.
+        required: true
+      tags:
+      - cursos
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/documentos/:
+    get:
+      operationId: documentos_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - documentos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentoList'
+          description: ''
+    post:
+      operationId: documentos_create
+      tags:
+      - documentos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Documento'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Documento'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Documento'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+          description: ''
+  /api/documentos/{id}/:
+    get:
+      operationId: documentos_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este documento.
+        required: true
+      tags:
+      - documentos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+          description: ''
+    patch:
+      operationId: documentos_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este documento.
+        required: true
+      tags:
+      - documentos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumento'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumento'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumento'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+          description: ''
+    delete:
+      operationId: documentos_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este documento.
+        required: true
+      tags:
+      - documentos
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/documentos/{id}/pdf/:
+    get:
+      operationId: documentos_pdf_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este documento.
+        required: true
+      tags:
+      - documentos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+          description: ''
+  /api/documentos/{id}/validar/:
+    post:
+      operationId: documentos_validar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este documento.
+        required: true
+      tags:
+      - documentos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Documento'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Documento'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Documento'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Documento'
+          description: ''
+  /api/eventos/:
+    get:
+      operationId: eventos_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - eventos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEventoList'
+          description: ''
+  /api/eventos/{id}/:
+    get:
+      operationId: eventos_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este evento.
+        required: true
+      tags:
+      - eventos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+          description: ''
+  /api/eventos/{id}/repetir/:
+    post:
+      operationId: eventos_repetir_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este evento.
+        required: true
+      tags:
+      - eventos
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Evento'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Evento'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Evento'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evento'
+          description: ''
+  /api/externo/:
+    get:
+      operationId: externo_retrieve
+      tags:
+      - externo
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: externo_create
+      tags:
+      - externo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/externo/pdf/:
+    get:
+      operationId: externo_pdf_retrieve
+      tags:
+      - externo
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      tags:
+      - health
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/membros/:
+    get:
+      operationId: membros_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - membros
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMembroList'
+          description: ''
+    post:
+      operationId: membros_create
+      tags:
+      - membros
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Membro'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+  /api/membros/{id}/:
+    get:
+      operationId: membros_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+    patch:
+      operationId: membros_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMembro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMembro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMembro'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+    delete:
+      operationId: membros_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/membros/{id}/confirmar/:
+    post:
+      operationId: membros_confirmar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Membro'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+  /api/membros/{id}/renovar/:
+    post:
+      operationId: membros_renovar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Membro'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+  /api/membros/{id}/revogar/:
+    post:
+      operationId: membros_revogar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este membro banca.
+        required: true
+      tags:
+      - membros
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Membro'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Membro'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membro'
+          description: ''
+  /api/monografias/:
+    get:
+      operationId: monografias_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - monografias
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMonografiaList'
+          description: ''
+    post:
+      operationId: monografias_create
+      tags:
+      - monografias
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+  /api/monografias/{id}/:
+    get:
+      operationId: monografias_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+    patch:
+      operationId: monografias_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMonografia'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMonografia'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMonografia'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+    delete:
+      operationId: monografias_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/monografias/{id}/aprovar/:
+    post:
+      operationId: monografias_aprovar_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+  /api/monografias/{id}/pdf/:
+    get:
+      operationId: monografias_pdf_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+  /api/monografias/{id}/submeter/:
+    post:
+      operationId: monografias_submeter_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - monografias
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Monografia'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Monografia'
+          description: ''
+  /api/orientadores/:
+    get:
+      operationId: orientadores_retrieve
+      tags:
+      - orientadores
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/professores/:
+    get:
+      operationId: professores_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - professores
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProfessorList'
+          description: ''
+    post:
+      operationId: professores_create
+      tags:
+      - professores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Professor'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Professor'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Professor'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Professor'
+          description: ''
+  /api/professores/{id}/:
+    get:
+      operationId: professores_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil professor.
+        required: true
+      tags:
+      - professores
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Professor'
+          description: ''
+    patch:
+      operationId: professores_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil professor.
+        required: true
+      tags:
+      - professores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessor'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessor'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProfessor'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Professor'
+          description: ''
+    delete:
+      operationId: professores_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este perfil professor.
+        required: true
+      tags:
+      - professores
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/publicadas/:
+    get:
+      operationId: publicadas_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - publicadas
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPublicaList'
+          description: ''
+  /api/publicadas/{id}/:
+    get:
+      operationId: publicadas_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - publicadas
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publica'
+          description: ''
+  /api/publicadas/{id}/pdf/:
+    get:
+      operationId: publicadas_pdf_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este monografia.
+        required: true
+      tags:
+      - publicadas
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publica'
+          description: ''
+  /api/relatorios/:
+    get:
+      operationId: relatorios_retrieve
+      tags:
+      - relatorios
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/schema/:
+    get:
+      operationId: schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - ht
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - schema
+      security:
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/usuarios/:
+    get:
+      operationId: usuarios_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Um número de página dentro do conjunto de resultados paginado.
+        schema:
+          type: integer
+      tags:
+      - usuarios
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsuarioList'
+          description: ''
+    post:
+      operationId: usuarios_create
+      tags:
+      - usuarios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Usuario'
+        required: true
+      security:
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+  /api/usuarios/{id}/:
+    get:
+      operationId: usuarios_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este usuário.
+        required: true
+      tags:
+      - usuarios
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+    patch:
+      operationId: usuarios_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este usuário.
+        required: true
+      tags:
+      - usuarios
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUsuario'
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+    delete:
+      operationId: usuarios_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Um valor inteiro único que identifica este usuário.
+        required: true
+      tags:
+      - usuarios
+      security:
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Aluno:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usuario:
+          type: integer
+        matricula:
+          type: string
+          maxLength: 50
+        curso:
+          type: integer
+        orientador_atual:
+          type: integer
+          nullable: true
+      required:
+      - curso
+      - id
+      - matricula
+      - usuario
+    Auditoria:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        ator:
+          type: integer
+          nullable: true
+        acao:
+          type: string
+          maxLength: 80
+        entidade:
+          type: string
+          maxLength: 80
+        registro_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        detalhes: {}
+        criado_em:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - acao
+      - criado_em
+      - entidade
+      - id
+      - registro_id
+    Avaliacao:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        membro:
+          type: integer
+        nota:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        parecer:
+          type: string
+        recomendacao:
+          $ref: '#/components/schemas/RecomendacaoEnum'
+        atualizada_em:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - atualizada_em
+      - id
+      - membro
+      - nota
+      - parecer
+      - recomendacao
+    Banca:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        monografia:
+          type: integer
+        monografia_titulo:
+          type: string
+          readOnly: true
+        data_hora:
+          type: string
+          format: date-time
+          title: Data e hora da defesa
+        fim:
+          type: string
+          format: date-time
+          nullable: true
+        local:
+          type: string
+          title: Local presencial
+          maxLength: 250
+        link:
+          title: Link de videoconferência
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BancaStatusEnum'
+          readOnly: true
+        nota_final:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          readOnly: true
+          nullable: true
+        encerrada_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - data_hora
+      - encerrada_em
+      - id
+      - monografia
+      - monografia_titulo
+      - nota_final
+      - status
+    BancaStatusEnum:
+      enum:
+      - em_preparacao
+      - agendada
+      - realizada
+      - cancelada
+      type: string
+      description: |-
+        * `em_preparacao` - Em Preparação
+        * `agendada` - Agendada
+        * `realizada` - Realizada
+        * `cancelada` - Cancelada
+    Curso:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 150
+        codigo:
+          type: string
+          maxLength: 20
+        coordenador:
+          type: integer
+          nullable: true
+      required:
+      - codigo
+      - id
+      - nome
+    Documento:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        monografia:
+          type: integer
+        tipo:
+          $ref: '#/components/schemas/TipoEnum'
+        arquivo:
+          type: string
+          format: uri
+          writeOnly: true
+        hash_sha256:
+          type: string
+          readOnly: true
+        validado_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        validado_por:
+          type: integer
+          readOnly: true
+          nullable: true
+      required:
+      - arquivo
+      - hash_sha256
+      - id
+      - monografia
+      - tipo
+      - validado_em
+      - validado_por
+    Evento:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tipo:
+          type: string
+          maxLength: 80
+        dados: {}
+        criado_em:
+          type: string
+          format: date-time
+          readOnly: true
+        processado_em:
+          type: string
+          format: date-time
+          nullable: true
+        erro:
+          type: string
+        tentativas:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+      required:
+      - criado_em
+      - id
+      - tipo
+    Membro:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        banca:
+          type: integer
+        usuario:
+          type: integer
+          nullable: true
+        nome:
+          type: string
+          maxLength: 200
+        email:
+          oneOf:
+          - type: string
+            format: email
+            default: ''
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        confirmado:
+          type: boolean
+          readOnly: true
+        expira_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        revogado:
+          type: boolean
+          readOnly: true
+      required:
+      - banca
+      - confirmado
+      - expira_em
+      - id
+      - revogado
+    Monografia:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 250
+        resumo:
+          type: string
+        palavras_chave:
+          type: string
+          maxLength: 500
+        autor:
+          type: integer
+          readOnly: true
+        orientador:
+          type: integer
+          nullable: true
+        curso:
+          type: integer
+        arquivo:
+          type: string
+          format: uri
+          nullable: true
+          writeOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/MonografiaStatusEnum'
+          readOnly: true
+        hash_sha256:
+          type: string
+          readOnly: true
+        versao:
+          type: integer
+          readOnly: true
+        submetida_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        aprovado_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        publicada_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - aprovado_em
+      - autor
+      - curso
+      - hash_sha256
+      - id
+      - publicada_em
+      - status
+      - submetida_em
+      - titulo
+      - versao
+    MonografiaStatusEnum:
+      enum:
+      - rascunho
+      - em_avaliacao
+      - aprovada_orientador
+      - aprovada
+      - ressalvas
+      - reprovada
+      - publicada
+      type: string
+      description: |-
+        * `rascunho` - Rascunho
+        * `em_avaliacao` - Em Avaliação pelo orientador
+        * `aprovada_orientador` - Aprovada pelo orientador
+        * `aprovada` - Aprovada em defesa
+        * `ressalvas` - Aprovada com ressalvas
+        * `reprovada` - Reprovada
+        * `publicada` - Publicada
+    PaginatedAlunoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Aluno'
+    PaginatedAuditoriaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Auditoria'
+    PaginatedAvaliacaoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Avaliacao'
+    PaginatedBancaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Banca'
+    PaginatedCursoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Curso'
+    PaginatedDocumentoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Documento'
+    PaginatedEventoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evento'
+    PaginatedMembroList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Membro'
+    PaginatedMonografiaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Monografia'
+    PaginatedProfessorList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Professor'
+    PaginatedPublicaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Publica'
+    PaginatedUsuarioList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Usuario'
+    PatchedAluno:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usuario:
+          type: integer
+        matricula:
+          type: string
+          maxLength: 50
+        curso:
+          type: integer
+        orientador_atual:
+          type: integer
+          nullable: true
+    PatchedAvaliacao:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        membro:
+          type: integer
+        nota:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+        parecer:
+          type: string
+        recomendacao:
+          $ref: '#/components/schemas/RecomendacaoEnum'
+        atualizada_em:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedBanca:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        monografia:
+          type: integer
+        monografia_titulo:
+          type: string
+          readOnly: true
+        data_hora:
+          type: string
+          format: date-time
+          title: Data e hora da defesa
+        fim:
+          type: string
+          format: date-time
+          nullable: true
+        local:
+          type: string
+          title: Local presencial
+          maxLength: 250
+        link:
+          title: Link de videoconferência
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BancaStatusEnum'
+          readOnly: true
+        nota_final:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          readOnly: true
+          nullable: true
+        encerrada_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+    PatchedCurso:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          maxLength: 150
+        codigo:
+          type: string
+          maxLength: 20
+        coordenador:
+          type: integer
+          nullable: true
+    PatchedDocumento:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        monografia:
+          type: integer
+        tipo:
+          $ref: '#/components/schemas/TipoEnum'
+        arquivo:
+          type: string
+          format: uri
+          writeOnly: true
+        hash_sha256:
+          type: string
+          readOnly: true
+        validado_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        validado_por:
+          type: integer
+          readOnly: true
+          nullable: true
+    PatchedMembro:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        banca:
+          type: integer
+        usuario:
+          type: integer
+          nullable: true
+        nome:
+          type: string
+          maxLength: 200
+        email:
+          oneOf:
+          - type: string
+            format: email
+            default: ''
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        confirmado:
+          type: boolean
+          readOnly: true
+        expira_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        revogado:
+          type: boolean
+          readOnly: true
+    PatchedMonografia:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 250
+        resumo:
+          type: string
+        palavras_chave:
+          type: string
+          maxLength: 500
+        autor:
+          type: integer
+          readOnly: true
+        orientador:
+          type: integer
+          nullable: true
+        curso:
+          type: integer
+        arquivo:
+          type: string
+          format: uri
+          nullable: true
+          writeOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/MonografiaStatusEnum'
+          readOnly: true
+        hash_sha256:
+          type: string
+          readOnly: true
+        versao:
+          type: integer
+          readOnly: true
+        submetida_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        aprovado_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        publicada_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+    PatchedProfessor:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usuario:
+          type: integer
+        departamento:
+          type: string
+          maxLength: 150
+        area_pesquisa:
+          type: string
+          title: Área de pesquisa
+          maxLength: 250
+    PatchedUsuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        email:
+          title: Endereço de email
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        groups:
+          type: array
+          items:
+            type: integer
+            title: Grupos
+          title: Grupos
+          description: Os grupos que este usuário pertence. Um usuário terá todas
+            as permissões concedidas a cada um dos seus grupos.
+        password:
+          type: string
+          writeOnly: true
+    Professor:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        usuario:
+          type: integer
+        departamento:
+          type: string
+          maxLength: 150
+        area_pesquisa:
+          type: string
+          title: Área de pesquisa
+          maxLength: 250
+      required:
+      - id
+      - usuario
+    Publica:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        titulo:
+          type: string
+          maxLength: 250
+        resumo:
+          type: string
+        palavras_chave:
+          type: string
+          maxLength: 500
+        autor_nome:
+          type: string
+          readOnly: true
+        orientador_nome:
+          type: string
+          readOnly: true
+        curso:
+          type: integer
+        publicada_em:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - autor_nome
+      - curso
+      - id
+      - orientador_nome
+      - publicada_em
+      - titulo
+    RecomendacaoEnum:
+      enum:
+      - aprovado
+      - ressalvas
+      - reprovado
+      type: string
+      description: |-
+        * `aprovado` - Aprovado sem ressalvas
+        * `ressalvas` - Aprovado com ressalvas
+        * `reprovado` - Reprovado
+    TipoEnum:
+      enum:
+      - ata
+      - termo
+      - ortografia
+      - corrigida
+      type: string
+      description: |-
+        * `ata` - Ata de defesa
+        * `termo` - Termo de autorização
+        * `ortografia` - Comprovante de revisão ortográfica
+        * `corrigida` - Versão corrigida
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          title: Usuário
+          description: Obrigatório. 150 caracteres ou menos. Letras, números e @/./+/-/_
+            apenas.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          title: Primeiro nome
+          maxLength: 150
+        last_name:
+          type: string
+          title: Último nome
+          maxLength: 150
+        email:
+          title: Endereço de email
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        is_active:
+          type: boolean
+          title: Ativo
+          description: Indica que o usuário será tratado como ativo. Ao invés de excluir
+            contas de usuário, desmarque isso.
+        groups:
+          type: array
+          items:
+            type: integer
+            title: Grupos
+          title: Grupos
+          description: Os grupos que este usuário pertence. Um usuário terá todas
+            as permissões concedidas a cada um dos seus grupos.
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - id
+      - username
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

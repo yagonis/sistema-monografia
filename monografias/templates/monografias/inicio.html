@@ -5,6 +5,7 @@
     <p>Bem-vindo ao seu painel.</p>
     {% if user.eh_aluno %}<p>Área do aluno: crie rascunhos e acompanhe suas submissões.</p>{% endif %}
     {% if user.eh_professor %}<p>Área do professor: consulte e aprove trabalhos submetidos à sua orientação.</p>{% endif %}
-    {% if not user.eh_aluno and not user.eh_professor %}<p>Solicite à administração a atribuição do seu perfil acadêmico.</p>{% endif %}
+    {% if user.eh_coordenador %}<p>Área da coordenação: acompanhe as submissões dos cursos sob sua responsabilidade.</p>{% endif %}
+    {% if not user.eh_aluno and not user.eh_professor and not user.eh_coordenador %}<p>Solicite à administração a atribuição do seu perfil acadêmico.</p>{% endif %}
 {% else %}<p>Entre para acessar sua área acadêmica.</p>{% endif %}
 {% endblock %}

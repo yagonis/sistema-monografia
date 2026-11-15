@@ -1,0 +1,16 @@
+{% extends 'monografias/base.html' %}
+{% block content %}
+<h1>Coordenação</h1>
+<h2>Cursos sob sua responsabilidade</h2>
+<ul>{% for curso in cursos %}<li>{{ curso.nome }} — {{ curso.codigo }}</li>
+{% empty %}<li>Nenhum curso vinculado. Solicite o vínculo à administração.</li>{% endfor %}</ul>
+<h2>Monografias submetidas</h2>
+{% for trabalho in trabalhos %}
+<article>
+    <h3>{{ trabalho.titulo }}</h3>
+    <p>{{ trabalho.curso.nome }} — Autor: {{ trabalho.autor.get_full_name|default:trabalho.autor.username }}</p>
+    <p>Orientador: {{ trabalho.orientador|default:'Não definido' }} — {{ trabalho.get_status_display }}</p>
+    <a href="{% url 'baixar_pdf' trabalho.pk %}">Baixar PDF</a>
+</article>
+{% empty %}<p>Nenhuma monografia submetida nos seus cursos.</p>{% endfor %}
+{% endblock %}

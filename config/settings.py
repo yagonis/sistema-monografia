@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dvgl#5(7n_emof)-6tzpxu+@b6$xc&^73-id4+d^-l2nx4fuy@'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-development-only-do-not-deploy')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,14 +42,18 @@ INSTALLED_APPS = [
     'usuarios.apps.UsuariosConfig',
     'allauth',
     'allauth.account',
+    'rest_framework',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'config.middleware.RedeAdministrativaMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'config.middleware.AuditoriaMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -84,8 +88,8 @@ DATABASES = {
         "NAME": "repositorio_tcc",
         "USER": "repositorio_app",
         "PASSWORD": os.environ["DB_PASSWORD"],
-        "HOST": "localhost",
-        "PORT": "5432",
+        "HOST": os.environ.get('DB_HOST', 'localhost'),
+        "PORT": os.environ.get('DB_PORT', '5432'),
     }
 }
 
@@ -152,3 +156,33 @@ ACCOUNT_ADAPTER = 'usuarios.adapters.AdaptadorConta'
 LANGUAGE_CODE = 'pt-br'
 
 MEDIA_ROOT = BASE_DIR / "uploads_privados"
+
+NOTA_MINIMA_ESCALA = 0
+NOTA_MAXIMA_ESCALA = 10
+CONVITE_VALIDADE_HORAS = int(os.environ.get('CONVITE_VALIDADE_HORAS', '168'))
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 25,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'api.exceptions.tratar',
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.AnonRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {'anon': '100/hour', 'submissoes': '10/hour'},
+}
+SPECTACULAR_SETTINGS = {'TITLE': 'API Repositório de Monografias', 'VERSION': '1.0.0'}
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.redis.RedisCache', 'LOCATION': REDIS_URL}}
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://guest:guest@localhost:5672//')
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_BEAT_SCHEDULE = {'outbox': {'task': 'monografias.tasks.despachar_eventos', 'schedule': 10.0}}
+CELERY_TASK_ACKS_LATE = True
+CELERY_TASK_SOFT_TIME_LIMIT = 150
+CELERY_TASK_TIME_LIMIT = 180
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 50
+ADMIN_NETWORKS = os.environ.get('ADMIN_NETWORKS', '127.0.0.1/32,::1/128').split(',')
+REPOSITORIO_URL = os.environ.get('REPOSITORIO_URL', '')
+REPOSITORIO_INTEGRATION_KEY = os.environ.get('REPOSITORIO_INTEGRATION_KEY', '')

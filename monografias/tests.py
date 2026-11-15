@@ -16,7 +16,7 @@ from .models import Curso, Monografia
 from .validadores import validar_pdf
 
 
-class FluxoOrientacaoTests(TestCase):
+class DadosMonografiaTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         Usuario = get_user_model()
@@ -30,6 +30,8 @@ class FluxoOrientacaoTests(TestCase):
         cls.curso = Curso.objects.create(nome='Sistemas', codigo='SI')
 
     def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
         self.diretorio = tempfile.TemporaryDirectory()
         self.addCleanup(self.diretorio.cleanup)
         self.configuracao = override_settings(MEDIA_ROOT=self.diretorio.name)
@@ -46,6 +48,8 @@ class FluxoOrientacaoTests(TestCase):
             hash_sha256=hashlib.sha256(self.pdf).hexdigest(), status='em_avaliacao',
         )
 
+
+class FluxoOrientacaoTests(DadosMonografiaTests):
     def aprovar(self):
         return self.client.post(reverse('aprovar_orientacao', args=[self.trabalho.pk]))
 
@@ -144,7 +148,6 @@ class FluxoOrientacaoTests(TestCase):
             resposta = self.client.get(url)
             self.assertEqual(resposta.status_code, 200)
             self.assertEqual(b''.join(resposta.streaming_content), self.pdf)
-            resposta.close()
         self.client.force_login(self.sem_perfil)
         self.assertEqual(self.client.get(url).status_code, 404)
 
@@ -185,7 +188,7 @@ class FluxoOrientacaoTests(TestCase):
         self.client.force_login(self.aluno)
         resposta = self.client.post(reverse('enviar_rascunho'), {
             'titulo': 'Fluxo completo', 'curso': self.curso.pk, 'orientador': self.professor.pk,
-            'arquivo': SimpleUploadedFile('novo.pdf', self.pdf),
+            'arquivo': SimpleUploadedFile('novo.pdf', self.pdf + b'\n% Nova monografia\n'),
         })
         self.assertRedirects(resposta, reverse('meus_rascunhos'))
         trabalho = Monografia.objects.get(titulo='Fluxo completo')
@@ -224,3 +227,138 @@ class FluxoOrientacaoTests(TestCase):
         )
         self.assertFalse(form.is_valid())
         self.assertIn('orientador', form.errors)
+
+
+class RegrasIntegridadeTests(DadosMonografiaTests):
+    def setUp(self):
+        super().setUp()
+        self.admin = get_user_model().objects.create_superuser('admin', 'admin@example.test', 'senha-teste')
+        self.client.force_login(self.admin)
+
+    def dados_admin(self):
+        return {
+            'titulo': 'Titulo alterado', 'resumo': 'Resumo alterado',
+            'autor': self.aluno.pk, 'curso': self.curso.pk,
+            'orientador': self.professor.pk, '_save': 'Salvar',
+        }
+
+    def test_admin_consulta_mas_nao_edita_trabalho_submetido(self):
+        url = reverse('admin:monografias_monografia_change', args=[self.trabalho.pk])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.post(url, self.dados_admin()).status_code, 403)
+        self.trabalho.refresh_from_db()
+        self.assertEqual(self.trabalho.titulo, 'Trabalho do aluno')
+
+    def test_admin_nao_troca_pdf_aprovado_nem_altera_hash(self):
+        self.trabalho.status = 'aprovada_orientador'
+        self.trabalho.aprovado_por = self.professor
+        self.trabalho.save()
+        nome_antes = self.trabalho.arquivo.name
+        hash_antes = self.trabalho.hash_sha256
+        dados = self.dados_admin()
+        dados['arquivo'] = SimpleUploadedFile('substituto.pdf', self.pdf + b'\n% PDF substituto\n')
+        resposta = self.client.post(reverse('admin:monografias_monografia_change', args=[self.trabalho.pk]), dados)
+        self.assertEqual(resposta.status_code, 403)
+        self.trabalho.refresh_from_db()
+        self.assertEqual(self.trabalho.arquivo.name, nome_antes)
+        self.assertEqual(self.trabalho.hash_sha256, hash_antes)
+        self.assertEqual(Path(self.trabalho.arquivo.path).read_bytes(), self.pdf)
+        self.assertEqual(self.trabalho.aprovado_por, self.professor)
+        self.assertEqual(self.trabalho.status, 'aprovada_orientador')
+
+    def test_admin_continua_editando_rascunho(self):
+        self.trabalho.status = 'rascunho'
+        self.trabalho.save()
+        resposta = self.client.post(reverse('admin:monografias_monografia_change', args=[self.trabalho.pk]), self.dados_admin())
+        self.assertEqual(resposta.status_code, 302)
+        self.trabalho.refresh_from_db()
+        self.assertEqual(self.trabalho.titulo, 'Titulo alterado')
+
+    def test_formulario_rejeita_instancia_desatualizada_apos_submissao(self):
+        self.trabalho.status = 'rascunho'
+        # O objeto em memória está desatualizado: o banco continua em_avaliacao.
+        form = MonografiaForm(
+            {'titulo': 'Alteracao indevida', 'curso': self.curso.pk, 'orientador': self.professor.pk},
+            {'arquivo': SimpleUploadedFile('substituto.pdf', self.pdf)}, instance=self.trabalho,
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('Somente monografias em rascunho podem ser editadas.', form.non_field_errors())
+
+    def test_curso_vinculado_nao_e_excluido_e_exibe_mensagem(self):
+        resposta = self.client.post(reverse('excluir_curso', args=[self.curso.pk]))
+        self.assertEqual(resposta.status_code, 409)
+        self.assertContains(resposta, 'Não é possível excluir este curso porque existem registros acadêmicos vinculados.', status_code=409)
+        self.assertTrue(Curso.objects.filter(pk=self.curso.pk).exists())
+        self.assertTrue(Monografia.objects.filter(pk=self.trabalho.pk).exists())
+
+    def test_curso_sem_vinculo_pode_ser_excluido(self):
+        curso = Curso.objects.create(nome='Curso livre', codigo='LIVRE')
+        resposta = self.client.post(reverse('excluir_curso', args=[curso.pk]))
+        self.assertRedirects(resposta, reverse('listar_cursos'))
+        self.assertFalse(Curso.objects.filter(pk=curso.pk).exists())
+
+    def test_get_nao_exclui_curso(self):
+        self.assertEqual(self.client.get(reverse('excluir_curso', args=[self.curso.pk])).status_code, 200)
+        self.assertTrue(Curso.objects.filter(pk=self.curso.pk).exists())
+
+    def test_aluno_sem_permissao_nao_exclui_curso(self):
+        self.client.force_login(self.aluno)
+        self.assertEqual(self.client.post(reverse('excluir_curso', args=[self.curso.pk])).status_code, 403)
+
+
+class CoordenacaoTests(DadosMonografiaTests):
+    def setUp(self):
+        super().setUp()
+        self.coordenador = get_user_model().objects.create_user('coordenador')
+        self.coordenador.groups.add(Group.objects.get(name='Coordenadores'))
+        self.curso.coordenador = self.coordenador
+        self.curso.save()
+        self.client.force_login(self.coordenador)
+
+    def test_lista_e_download_apenas_do_curso_vinculado(self):
+        self.assertContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        resposta = self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk]))
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(b''.join(resposta.streaming_content), self.pdf)
+        outro_curso = Curso.objects.create(nome='Outro curso', codigo='OUTRO')
+        self.trabalho.curso = outro_curso
+        self.trabalho.save()
+        self.assertNotContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_rascunho_nao_e_exposto_a_coordenacao(self):
+        self.trabalho.status = 'rascunho'
+        self.trabalho.save()
+        self.assertNotContains(self.client.get(reverse('coordenacao')), self.trabalho.titulo)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_grupo_sem_vinculo_nao_concede_acesso_a_trabalhos(self):
+        self.curso.coordenador = None
+        self.curso.save()
+        self.assertContains(self.client.get(reverse('coordenacao')), 'Nenhum curso vinculado')
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_vinculo_sem_grupo_nao_concede_acesso(self):
+        self.coordenador.groups.clear()
+        self.assertEqual(self.client.get(reverse('coordenacao')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('baixar_pdf', args=[self.trabalho.pk])).status_code, 404)
+
+    def test_aluno_e_professor_nao_entram_na_area_sem_grupo(self):
+        for usuario in [self.aluno, self.professor]:
+            self.client.force_login(usuario)
+            self.assertEqual(self.client.get(reverse('coordenacao')).status_code, 403)
+
+    def test_coordenador_nao_aprova_orientacao_nem_edita_monografia(self):
+        self.assertEqual(self.client.post(reverse('aprovar_orientacao', args=[self.trabalho.pk])).status_code, 403)
+        self.assertEqual(self.client.post(reverse('editar_rascunho', args=[self.trabalho.pk])).status_code, 403)
+
+    def test_visitante_redirecionado_para_login(self):
+        self.client.logout()
+        resposta = self.client.get(reverse('coordenacao'))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertIn('/contas/login/', resposta.url)
+
+    def test_painel_mostra_area_da_coordenacao(self):
+        resposta = self.client.get(reverse('inicio'))
+        self.assertContains(resposta, 'Área da coordenação')
+        self.assertNotContains(resposta, 'Solicite à administração a atribuição')
