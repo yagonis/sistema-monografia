@@ -1,0 +1,9 @@
+{
+  "name": "monografias-portal",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/test_frontend.mjs"
+  },
+  "description": "Portal JavaScript servido pelo Django, sem dependências de build."
+}

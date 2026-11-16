@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
 def inicio(request):
-    return render(request, 'monografias/inicio.html')
+    return render(request, 'monografias/portal.html')
 
 def listar_cursos(request):
     cursos = Curso.objects.order_by("nome")

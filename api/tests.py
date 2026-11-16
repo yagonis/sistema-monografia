@@ -151,6 +151,16 @@ class CicloBackendTests(DadosMonografiaTests):
         with self.assertRaises(ValidationError):
             s.convidar(self.professor, banca, {'nome': 'Mesmo professor', 'email': self.professor.email.upper()})
 
+    def test_convite_externo_mostra_etapa_sem_expor_segredos(self):
+        banca = self.banca()
+        membro, token = s.convidar(self.professor, banca, {'nome': 'Externo', 'email': 'externo@example.test'})
+        resposta = self.api.get('/api/externo/', HTTP_X_BANCA_TOKEN=token)
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.data['status'], 'em_preparacao')
+        self.assertFalse(resposta.data['confirmado'])
+        self.assertIsNone(resposta.data['avaliacao'])
+        self.assertNotIn('token_hash', resposta.data)
+
     def test_alteracao_de_banca_agendada_exige_novas_confirmacoes(self):
         banca = self.banca()
         membro = self.membro(banca)
@@ -205,3 +215,28 @@ class SegurancaAPITests(DadosMonografiaTests):
         self.api.force_authenticate(admin)
         self.assertEqual(self.api.get('/api/usuarios/', REMOTE_ADDR='203.0.113.5').status_code, 403)
         self.assertEqual(self.api.get('/api/usuarios/', REMOTE_ADDR='127.0.0.1').status_code, 200)
+
+
+class IntegracaoPortalTests(DadosMonografiaTests):
+    def test_portal_entrega_modulos_sem_expor_dados_privados(self):
+        resposta = self.client.get('/')
+        self.assertContains(resposta, 'portal/app.js')
+        self.assertContains(resposta, 'portal/portal.css')
+        self.assertNotContains(resposta, self.trabalho.titulo)
+
+    def test_conta_informa_capacidades_sem_senha(self):
+        self.client.force_login(self.professor)
+        dados = self.client.get('/api/conta/').json()['usuario']
+        self.assertIn('nome', dados)
+        self.assertFalse(dados['is_admin'])
+        self.assertIn('Professores', dados['grupos'])
+        self.assertNotIn('password', dados)
+
+    def test_grupos_restritos_a_administracao_e_rede(self):
+        self.assertEqual(self.client.get('/api/grupos/').status_code, 403)
+        self.client.force_login(self.aluno)
+        self.assertEqual(self.client.get('/api/grupos/').status_code, 403)
+        admin = get_user_model().objects.create_superuser('admin-portal', 'admin@example.test', 'senha-teste')
+        self.client.force_login(admin)
+        self.assertEqual(self.client.get('/api/grupos/').status_code, 200)
+        self.assertEqual(self.client.get('/api/grupos/', REMOTE_ADDR='203.0.113.5').status_code, 403)

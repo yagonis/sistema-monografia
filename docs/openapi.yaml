@@ -925,6 +925,21 @@ paths:
                 type: string
                 format: binary
           description: ''
+  /api/grupos/:
+    get:
+      operationId: grupos_retrieve
+      tags:
+      - grupos
+      security:
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/health/:
     get:
       operationId: health_retrieve

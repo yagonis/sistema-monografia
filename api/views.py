@@ -84,7 +84,8 @@ class Conta(APIView):
     def get(self, request):
         usuario = request.user
         return Response({'csrfToken': get_token(request), 'autenticado': usuario.is_authenticated,
-            'usuario': {'id': usuario.pk, 'username': usuario.username, 'grupos': list(usuario.groups.values_list('name', flat=True))}
+            'usuario': {'id': usuario.pk, 'username': usuario.username, 'nome': usuario.get_full_name(),
+                        'is_admin': usuario.is_superuser, 'grupos': list(usuario.groups.values_list('name', flat=True))}
             if usuario.is_authenticated else None})
 
     @method_decorator(csrf_protect)
@@ -384,7 +385,9 @@ class Externo(APIView):
         if banca.status == 'cancelada':
             raise Http404
         return Response({'membro': membro.pk, 'banca': banca.pk, 'titulo': banca.monografia.titulo,
-                         'data_hora': banca.data_hora, 'fim': banca.fim, 'local': banca.local, 'link': banca.link})
+                         'data_hora': banca.data_hora, 'fim': banca.fim, 'local': banca.local, 'link': banca.link,
+                         'status': banca.status, 'confirmado': membro.confirmado, 'encerrada_em': banca.encerrada_em,
+                         'avaliacao': Avaliacao.objects.filter(membro=membro).values('nota', 'parecer', 'recomendacao').first()})
     @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
     def post(self, request):
         membro = self.membro(request)
@@ -489,3 +492,12 @@ class Health(APIView):
         if cache.get('health:probe') != 'ok':
             return Response({'status': 'indisponivel'}, status=503)
         return Response({'status': 'ok', 'servico': 'academico'})
+
+
+class Grupos(APIView):
+    permission_classes = [Administracao]
+
+    @extend_schema(responses=OpenApiTypes.OBJECT)
+    def get(self, request):
+        from django.contrib.auth.models import Group
+        return Response(list(Group.objects.filter(name__in=['Alunos', 'Professores', 'Coordenadores']).order_by('name').values('id', 'name')))

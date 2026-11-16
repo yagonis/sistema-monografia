@@ -4,6 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+RUN DB_PASSWORD=build-only python manage.py collectstatic --noinput
 RUN useradd --create-home app && mkdir -p /app/uploads_privados && chown -R app:app /app
 USER app
 EXPOSE 8000

@@ -4,7 +4,7 @@ Base acadêmica: `/api/`. Respostas JSON, exceto downloads PDF. Listas CRUD pagi
 
 ## Sessão e CSRF
 
-1. `GET /api/conta/` retorna `csrfToken`, `autenticado` e, se houver sessão, usuário/grupos.
+1. `GET /api/conta/` retorna `csrfToken`, `autenticado` e, se houver sessão, usuário, nome, grupos e `is_admin`.
 2. `POST /api/conta/` com `{"login":"usuario","password":"senha"}`, cookie de sessão e cabeçalho `X-CSRFToken`.
 3. Após login, use o novo `csrfToken` da resposta nas operações de escrita e envie cookies (`credentials: "include"` no fetch).
 4. `DELETE /api/conta/` encerra a sessão; também exige CSRF.
@@ -36,6 +36,7 @@ A implantação inicial deve servir frontend e API na mesma origem. Não existe 
 | `documentos/{id}/pdf/` | GET | Download privado autorizado |
 | `usuarios/`, `alunos/`, `professores/` e detalhes | GET, POST, PATCH, DELETE | Cadastros administrativos na rede autorizada |
 | `relatorios/` | GET | Estatísticas limitadas aos trabalhos visíveis ao usuário |
+| `grupos/` | GET | Grupos acadêmicos disponíveis para administração na rede autorizada |
 | `auditoria/` | GET | Histórico administrativo, somente leitura |
 | `eventos/` | GET | Operação da outbox, restrita à administração |
 | `eventos/{id}/repetir/` | POST | Libera nova tentativa de evento pendente |
@@ -64,7 +65,7 @@ Documento: upload multipart com `monografia`, `tipo` e `arquivo`. Tipos: `ata`, 
 
 Use `X-Banca-Token` como cabeçalho em cada requisição:
 
-- `GET /api/externo/`: dados limitados ao convite.
+- `GET /api/externo/`: dados limitados ao convite, estado da banca, confirmação do próprio membro e sua própria avaliação, quando existir.
 - `POST /api/externo/` com `{"acao":"confirmar"}`: confirma disponibilidade.
 - `GET /api/externo/pdf/`: PDF autorizado após agendamento.
 - `POST /api/externo/` com nota, parecer e recomendação: registra/edita a própria avaliação antes do fechamento. O membro é derivado do token; enviar outro ID não amplia acesso.

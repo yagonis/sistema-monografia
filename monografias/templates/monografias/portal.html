@@ -1,0 +1,35 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#183e35">
+    <meta name="description" content="Consulte a produção acadêmica e acompanhe submissões, orientações e bancas de monografias.">
+    <title>Monografias — Repositório acadêmico</title>
+    <link rel="icon" href="{% static 'portal/favicon.svg' %}" type="image/svg+xml">
+    <link rel="stylesheet" href="{% static 'portal/portal.css' %}">
+    <script type="module" src="{% static 'portal/app.js' %}"></script>
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<div id="app" class="app-shell">
+    <aside id="sidebar" class="sidebar" aria-label="Navegação principal"></aside>
+    <div class="workspace">
+        <header id="topbar" class="topbar"></header>
+        <main id="conteudo" tabindex="-1" aria-busy="true"><div class="loading"><span class="spinner"></span>Carregando o portal…</div></main>
+        <footer class="footer"><span>Monografias <span aria-hidden="true">/</span> Repositório acadêmico</span><span>Conhecimento disponível. Pesquisa em movimento.</span></footer>
+    </div>
+</div>
+<div id="notificacoes" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+<dialog id="modal" aria-labelledby="modal-titulo"></dialog>
+<noscript>
+    <p>Ative o JavaScript para usar o portal. Você também pode acessar os <a href="/cursos/">cursos</a> e o <a href="/contas/login/">login tradicional</a>.</p>
+    {% if user.is_authenticated %}
+        {% if user.eh_aluno %}<p>Área do aluno: <a href="/minhas-monografias/">Minhas monografias</a></p>{% endif %}
+        {% if user.eh_professor %}<p>Área do professor: <a href="/orientacoes/">Minhas orientações</a></p>{% endif %}
+        {% if user.eh_coordenador %}<p>Área da coordenação: <a href="/coordenacao/">Coordenação</a></p>{% endif %}
+    {% endif %}
+</noscript>
+</body>
+</html>

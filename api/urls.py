@@ -14,6 +14,7 @@ for prefixo, view, nome in [
 ]:
     router.register(prefixo, view, basename=nome)
 urlpatterns = [
+    path('grupos/', views.Grupos.as_view()),
     path('health/', views.Health.as_view()),
     path('conta/', views.Conta.as_view()), path('orientadores/', views.Orientadores.as_view()),
     path('relatorios/', views.Relatorios.as_view()), path('externo/', views.Externo.as_view()),
