@@ -71,10 +71,15 @@ def indexar_publicacao(trabalho):
     from urllib.request import Request, urlopen
     banca = trabalho.bancas.filter(status='realizada').order_by('-data_hora').first()
     dados_publicos = {'id': trabalho.pk, 'titulo': trabalho.titulo, 'resumo': trabalho.resumo,
-        'autor': trabalho.autor.get_full_name() or trabalho.autor.username,
-        'orientador': trabalho.orientador.get_full_name() or trabalho.orientador.username,
+        # Somente nomes: o username é credencial de login e não pode ir para o acervo público.
+        'autor': trabalho.autor.get_full_name() or 'Não informado',
+        'orientador': trabalho.orientador.get_full_name() or 'Não informado',
         'curso': trabalho.curso_id, 'palavras_chave': trabalho.palavras_chave,
-        'ano_defesa': banca.data_hora.year if banca else None}
+        'ano_defesa': banca.data_hora.year if banca else None,
+        # Mesmos campos da API acadêmica (/api/publicadas/), para o portal consumir o repositório sem adaptação.
+        'autor_id': trabalho.autor_id, 'orientador_id': trabalho.orientador_id,
+        'autor_nome': trabalho.autor.get_full_name(), 'orientador_nome': trabalho.orientador.get_full_name(),
+        'publicada_em': trabalho.publicada_em.isoformat() if trabalho.publicada_em else None}
     payload = {'origem_id': trabalho.pk, 'titulo': trabalho.titulo, 'autor': dados_publicos['autor'],
         'orientador': dados_publicos['orientador'], 'curso_id': trabalho.curso_id,
         'ano_defesa': dados_publicos['ano_defesa'], 'palavras_chave': trabalho.palavras_chave,
@@ -84,6 +89,8 @@ def indexar_publicacao(trabalho):
         'X-Integration-Key': settings.REPOSITORIO_INTEGRATION_KEY}, method='POST')
     with urlopen(req, timeout=10) as response:
         response.read()
+    from .servicos import invalidar_busca_publica
+    invalidar_busca_publica()
 
 
 @shared_task

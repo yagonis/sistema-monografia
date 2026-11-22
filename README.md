@@ -54,7 +54,7 @@ O escopo exige:
 ### 2.2. Cadastros, consultas e CRUD
 
 - [x] **RF08** CRUD de usuários, perfis de aluno/professor, cursos, monografias, bancas e avaliações, respeitando as restrições de cada etapa.
-- [ ] **RF09 — Parcial:** busca pública e filtros por autor, orientador, curso, ano de defesa e palavras-chave implementados. Nas listas privadas, ainda faltam filtros completos no servidor; o portal filtra localmente os trabalhos carregados.
+- [x] **RF09** Busca e filtros por autor, orientador, curso, ano de defesa e palavras-chave no servidor, tanto na consulta pública quanto em `/api/monografias/` (ex.: `?busca=sistemas+distribuidos`). A busca livre exige todos os termos e considera título, resumo, palavras-chave, texto extraído e nomes de autor/orientador. O portal ainda filtra localmente as listas privadas já carregadas.
 - [x] **RF10** Edição de rascunhos e de bancas ainda não realizadas e sem avaliações; editar banca exige novas confirmações. O admin também bloqueia alterações de monografias submetidas/aprovadas.
 - [x] **RF11** Avaliação editável somente pelo respectivo avaliador e antes do fechamento do resultado.
 - [x] **RF12** Exclusões exigem autorização e respeitam vínculos; monografias publicadas não podem ser excluídas. A implementação restringe a exclusão de monografias aos rascunhos.
@@ -111,7 +111,7 @@ O escopo exige:
 - [x] **RD06** Extração de texto e projeção/indexação pública por eventos; somente publicações são enviadas ao serviço público.
 - [x] **RD07** Notificações de agendamento processadas pela fila; entrega externa depende da configuração de e-mail indicada em RF24.
 - [x] Dois serviços Django com APIs, configurações, migrações e PostgreSQL independentes: acadêmico e repositório público.
-- [ ] **Parcial:** o portal consulta o acervo pelo endpoint do serviço acadêmico. O serviço independente já recebe publicações e oferece busca/cache, mas falta direcionar o tráfego público do portal para ele por uma integração de mesma origem/proxy adequada.
+- [x] A listagem pública `/api/publicadas/` do serviço acadêmico funciona como gateway de mesma origem: resultados em cache Redis (`busca:<versão>:<hash da query>`, invalidado a cada publicação/indexação) e, com `REPOSITORIO_URL` configurada, consulta encaminhada ao serviço de repositório. Se o repositório estiver indisponível, a consulta local é usada e novas tentativas ficam suspensas por 30 s. Detalhe e PDF continuam servidos pelo acadêmico.
 
 ### 2.9. Requisitos não funcionais
 
@@ -126,8 +126,8 @@ O escopo exige:
 
 Este checklist separa pendências reais de implantação e melhorias das funcionalidades já implementadas:
 
-- [ ] **Conectar o acervo do portal ao serviço público independente**, preservando a mesma origem da interface e o acesso correto aos PDFs.
-- [ ] **Completar filtros e paginação de trabalho no servidor para as listas privadas**, evitando carregar todos os registros no navegador em contas com muitos vínculos.
+- [ ] **Usar no portal os filtros de servidor das listas privadas**, evitando carregar todos os registros no navegador em contas com muitos vínculos (a API já filtra e pagina).
+- [ ] **Reindexar publicações antigas** no repositório para incluir `autor_id`, `orientador_id`, `autor_nome`, `orientador_nome` e `publicada_em`, usados pelos filtros e cartões do portal.
 - [ ] **Configurar SMTP e validar e-mails reais** de convites, submissão, agendamento e publicação.
 - [ ] **Configurar a rede institucional/VPN e os IPs autorizados** e testar o acesso pela infraestrutura real, inclusive o endereço recebido através de Docker/proxy.
 - [ ] **Preparar implantação real:** domínio, HTTPS, hosts, segredos, permissões de volumes, backups/restauração e operação contínua de worker/beat.
@@ -378,7 +378,10 @@ Documentos usam multipart com `monografia`, `tipo` e `arquivo`; tipos: `ata`, `t
 ### Busca e respostas
 
 - Acadêmico: `/api/publicadas/?busca=redes&curso=1&ano_defesa=2026`. `autor` e `orientador` são IDs; também há `palavras_chave` e `page`.
-- Repositório: `http://127.0.0.1:8001/api/publicadas/`, com busca full-text, curso/ano e autor/orientador textuais. Paginação: `count`, `page`, `page_size`, `results`.
+- Privada: `/api/monografias/` aceita os mesmos filtros, restritos aos trabalhos visíveis para a conta.
+- Repositório: `http://127.0.0.1:8001/api/publicadas/`, com busca full-text, curso/ano, autor/orientador textuais e `autor_id`/`orientador_id`. Paginação: `count`, `page`, `page_size`, `results`.
+- Limites: leitura pública (acervo, cursos, orientadores) 10.000 requisições/hora por IP; demais acessos anônimos, incluindo login, 100/hora; submissões 10/hora por usuário. O IP é o `REMOTE_ADDR` (`NUM_PROXIES = 0`): `X-Forwarded-For` enviado pelo cliente é ignorado. Atrás de proxy reverso, ajuste `NUM_PROXIES` e `ADMIN_NETWORKS` juntos.
+- Busca livre: até 8 termos (400 acima disso). Username nunca é pesquisável nem publicado; sem nome cadastrado, o repositório recebe "Não informado".
 - Integração interna: `POST /internal/indexar/` no repositório, com `X-Integration-Key`. Não é endpoint para visitantes; recebe somente projeções de publicações.
 - Relatórios retornam contagens por curso/orientador/ano, taxa entre resultados fechados e tempo médio em dias. Sem dados suficientes, taxas/duração podem ser `null`.
 - Códigos: 200 consulta/ação, 201 criação, 204 exclusão, 400 validação, 403 sessão/permissão/CSRF, 404 inexistente/fora do escopo, 405 método, 409 vínculo/conflito e 429 limite de taxa. O frontend trata campos e status, sem depender de frases exatas.
@@ -418,8 +421,8 @@ REPOSITORIO_TEST_SQLITE=1 python manage.py test services.repositorio.checks --se
 
 ### Evidências já obtidas
 
-- 68 testes acadêmicos/integração do portal e verificações JavaScript na implementação atual.
-- 3 testes do repositório público: chave de integração, ingestão idempotente, filtros e invalidação de cache.
+- 124 testes acadêmicos/integração do portal, incluindo `api/test_requisitos.py` (sequência de verificação do enunciado, por seção, e regressões de segurança em `R08Seguranca`), e verificações JavaScript.
+- 4 testes do repositório público: chave de integração, ingestão idempotente, filtros (inclusive por identificador) e invalidação de cache.
 - Validação anterior do backend em PostgreSQL/Redis Docker: 64 testes da versão daquele momento, sem misturar esse resultado histórico com os testes adicionados depois no frontend.
 - Integração anterior real: submissão → RabbitMQ/worker → extração → avaliações 8 e 6 → média 7 → termo/correção → publicação → indexação HTTP no banco público.
 - Navegador com fixtures isoladas: acervo/busca, login, edição/submissão, relatórios, banca do professor, troca de perfil, administração, convite e mensagem de token inválido; layout em 1440 px e 390 px.

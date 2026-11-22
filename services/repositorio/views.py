@@ -57,6 +57,14 @@ def pesquisar(request):
                 qs = qs.filter(**{campo: int(valor)})
             except ValueError:
                 return JsonResponse({'detail': 'Filtro numérico inválido'}, status=400)
+    # Identificadores enviados pelo gateway acadêmico (filtros do portal).
+    for campo in ['autor_id', 'orientador_id']:
+        valor = request.GET.get(campo)
+        if valor:
+            try:
+                qs = qs.filter(**{'dados__' + campo: int(valor)})
+            except ValueError:
+                return JsonResponse({'detail': 'Filtro numérico inválido'}, status=400)
     for campo in ['autor', 'orientador', 'palavras_chave']:
         if request.GET.get(campo):
             qs = qs.filter(**{campo + '__icontains': request.GET[campo][:200]})

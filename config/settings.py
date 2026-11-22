@@ -174,7 +174,10 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'EXCEPTION_HANDLER': 'api.exceptions.tratar',
     'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.AnonRateThrottle'],
-    'DEFAULT_THROTTLE_RATES': {'anon': '100/hour', 'submissoes': '10/hour'},
+    'DEFAULT_THROTTLE_RATES': {'anon': '100/hour', 'publico': '10000/hour', 'submissoes': '10/hour'},
+    # Identificar o cliente por REMOTE_ADDR: X-Forwarded-For vem do cliente e não é confiável sem proxy declarado
+    # (mesma regra do ADMIN_NETWORKS e do allauth). Atrás de proxy reverso, ajuste para o número de proxies.
+    'NUM_PROXIES': 0,
 }
 SPECTACULAR_SETTINGS = {'TITLE': 'API Repositório de Monografias', 'VERSION': '1.0.0'}
 REDIS_URL = os.environ.get('REDIS_URL')

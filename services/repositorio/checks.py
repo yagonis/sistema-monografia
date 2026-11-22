@@ -25,3 +25,9 @@ class RepositorioTests(TestCase):
     def test_parametros_invalidos_nao_geram_erro_interno(self):
         self.assertEqual(self.client.get('/api/publicadas/?page=abc').status_code, 400)
         self.assertEqual(self.client.get('/api/publicadas/?curso=abc').status_code, 400)
+        self.assertEqual(self.client.get('/api/publicadas/?orientador_id=abc').status_code, 400)
+    def test_filtro_por_identificadores_do_gateway(self):
+        self.payload['dados'] = {'id': 1, 'autor_id': 7, 'orientador_id': 9}
+        self.client.post('/internal/indexar/', json.dumps(self.payload), content_type='application/json', HTTP_X_INTEGRATION_KEY='test-key')
+        self.assertEqual(self.client.get('/api/publicadas/?orientador_id=9&autor_id=7').json()['count'], 1)
+        self.assertEqual(self.client.get('/api/publicadas/?orientador_id=8').json()['count'], 0)

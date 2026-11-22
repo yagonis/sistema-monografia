@@ -28,6 +28,11 @@ def auditar(ator, acao, objeto, **detalhes):
                             acao=acao, entidade=objeto._meta.label, registro_id=objeto.pk, detalhes=detalhes)
 
 
+def invalidar_busca_publica():
+    """Nova versão das chaves busca:* — resultados em cache anteriores deixam de ser usados."""
+    cache.set('busca:versao', secrets.token_hex(8), None)
+
+
 def evento(tipo, **dados):
     # Outbox durável: o worker publica/processa somente registros já confirmados.
     return Evento.objects.create(tipo=tipo, dados=dados)
@@ -305,6 +310,7 @@ def publicar_se_pronta(pk):
     trabalho.save(update_fields=['status', 'publicada_em'])
     auditar(None, 'publicacao', trabalho)
     evento('monografia_publicada', monografia_id=pk)
+    transaction.on_commit(invalidar_busca_publica)
     return True
 
 

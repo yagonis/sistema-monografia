@@ -13,7 +13,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiTypes
-from .throttles import SubmissaoThrottle
+from .throttles import PublicoThrottle, SubmissaoThrottle
 
 from monografias.models import Curso, Monografia, Banca, MembroBanca, Avaliacao, Documento, Auditoria
 from monografias.forms import MonografiaForm
@@ -37,6 +37,47 @@ def visiveis(usuario):
     if usuario.eh_coordenador:
         filtro |= Q(curso__coordenador=usuario) & ~Q(status='rascunho')
     return Monografia.objects.filter(filtro).distinct()
+
+
+# Sem username: o login não é dado público e a busca não pode servir de oráculo para descobri-lo.
+CAMPOS_BUSCA = ['titulo', 'resumo', 'palavras_chave', 'texto_extraido', 'autor__first_name', 'autor__last_name',
+                'orientador__first_name', 'orientador__last_name']
+MAX_TERMOS_BUSCA = 8
+
+
+def termos_busca(params):
+    termos = params.get('busca', '')[:200].split()
+    if len(termos) > MAX_TERMOS_BUSCA:
+        # Cada termo soma buscas em vários campos (inclusive o texto integral): limitar o custo por requisição.
+        raise serializers.ValidationError({'busca': f'Use no máximo {MAX_TERMOS_BUSCA} termos.'})
+    return termos
+
+
+def filtrar_monografias(qs, params):
+    """Filtros de leitura (enunciado: aluno, orientador, curso, ano de defesa, palavras-chave e busca livre)."""
+    for campo in ['curso', 'autor', 'orientador']:
+        if params.get(campo):
+            try:
+                qs = qs.filter(**{campo + '_id': int(params[campo])})
+            except ValueError:
+                raise serializers.ValidationError({campo: 'Identificador inválido.'})
+    if params.get('ano_defesa'):
+        try:
+            ano = int(params['ano_defesa'])
+            if not 1 <= ano <= 9999:
+                raise ValueError
+        except ValueError:
+            raise serializers.ValidationError({'ano_defesa': 'Ano inválido.'})
+        qs = qs.filter(bancas__status='realizada', bancas__data_hora__year=ano)
+    if params.get('palavras_chave'):
+        qs = qs.filter(palavras_chave__icontains=params['palavras_chave'][:200])
+    # Cada termo precisa aparecer em algum campo: "sistemas distribuidos" exige os dois termos.
+    for termo in termos_busca(params):
+        condicao = Q()
+        for campo in CAMPOS_BUSCA:
+            condicao |= Q(**{campo + '__icontains': termo})
+        qs = qs.filter(condicao)
+    return qs.distinct()
 
 
 def pdf_resposta(arquivo, nome, hash_esperado=None):
@@ -109,6 +150,7 @@ class Conta(APIView):
 class CursoViewSet(BaseViewSet):
     queryset = Curso.objects.order_by('nome')
     serializer_class = CursoSerializer
+    throttle_classes = [PublicoThrottle]
     def get_permissions(self):
         return [permissions.AllowAny()] if self.action in ['list', 'retrieve'] else [Administracao()]
     def perform_create(self, serializer):
@@ -121,31 +163,28 @@ class CursoViewSet(BaseViewSet):
 
 class Publicas(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PublicoThrottle]
     serializer_class = PublicaSerializer
     def get_queryset(self):
         qs = Monografia.objects.filter(status='publicada').select_related('autor', 'orientador').order_by('-publicada_em', 'pk')
-        params = self.request.query_params
-        for campo in ['curso', 'autor', 'orientador']:
-            if params.get(campo):
-                try:
-                    qs = qs.filter(**{campo + '_id': int(params[campo])})
-                except ValueError:
-                    raise serializers.ValidationError({campo: 'Identificador inválido.'})
-        if params.get('ano_defesa'):
-            try:
-                ano = int(params['ano_defesa'])
-                if not 1 <= ano <= 9999:
-                    raise ValueError
-                qs = qs.filter(bancas__status='realizada', bancas__data_hora__year=ano)
-            except ValueError:
-                raise serializers.ValidationError({'ano_defesa': 'Ano inválido.'})
-        if params.get('palavras_chave'):
-            qs = qs.filter(palavras_chave__icontains=params['palavras_chave'])
-        if params.get('busca'):
-            q = params['busca'][:200]
-            qs = qs.filter(Q(titulo__icontains=q) | Q(resumo__icontains=q) | Q(palavras_chave__icontains=q)
-                | Q(autor__first_name__icontains=q) | Q(autor__last_name__icontains=q) | Q(texto_extraido__icontains=q))
-        return qs.distinct()
+        return filtrar_monografias(qs, self.request.query_params)
+
+    def list(self, request, *args, **kwargs):
+        # Cache Redis de buscas públicas (busca:<versão>:<hash da query>), invalidado a cada publicação.
+        import hashlib
+        from django.core.cache import cache
+        from . import repositorio
+        termos_busca(request.query_params)  # mesmo limite antes do cache e do encaminhamento ao repositório
+        consulta = sorted(request.query_params.lists())
+        chave = 'busca:%s:%s' % (cache.get_or_set('busca:versao', 'inicial', None),
+                                 hashlib.sha256(repr(consulta).encode()).hexdigest())
+        dados = cache.get(chave)
+        if dados is None:
+            dados = repositorio.buscar(request.query_params, request)
+            if dados is None:
+                dados = super().list(request, *args, **kwargs).data
+            cache.set(chave, dados, 60)
+        return Response(dados)
 
     @action(detail=True, methods=['get'])
     def pdf(self, request, pk=None):
@@ -161,7 +200,8 @@ class Monografias(BaseViewSet):
     def get_throttles(self):
         return [SubmissaoThrottle()] if self.action in ['create', 'submeter'] else super().get_throttles()
     def get_queryset(self):
-        return visiveis(self.request.user).select_related('curso', 'autor', 'orientador').order_by('pk')
+        qs = visiveis(self.request.user).select_related('curso', 'autor', 'orientador').order_by('pk')
+        return filtrar_monografias(qs, self.request.query_params) if self.action == 'list' else qs
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -432,6 +472,7 @@ class Professores(Usuarios):
 
 class Orientadores(APIView):
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [PublicoThrottle]
     @extend_schema(responses=OpenApiTypes.OBJECT)
     def get(self, request):
         return Response(list(get_user_model().objects.filter(groups__name='Professores', is_active=True).order_by('pk').values('id', 'first_name', 'last_name')))
