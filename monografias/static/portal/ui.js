@@ -60,10 +60,12 @@ export function datetimeLocal(value) {
     .toISOString()
     .slice(0, 16);
 }
-export const heading = (eyebrow, title, subtitle, actions = "") =>
-  `<div class="page-heading"><div><div class="eyebrow">${escape(eyebrow)}</div><h1>${escape(title)}</h1><p>${escape(subtitle)}</p></div>${actions}</div>`;
+// O primeiro argumento (contexto da seção) fica só no breadcrumb da barra superior;
+// repeti-lo como rótulo acima do título não acrescenta informação.
+export const heading = (_context, title, subtitle, actions = "") =>
+  `<div class="page-heading"><div><h1>${escape(title)}</h1><p>${escape(subtitle)}</p></div>${actions ? `<div class="actions">${actions}</div>` : ""}</div>`;
 export const empty = (title, text, action = "") =>
-  `<div class="empty"><div class="empty-icon">${icon("book")}</div><h3>${escape(title)}</h3><p>${escape(text)}</p>${action}</div>`;
+  `<div class="empty"><h3>${escape(title)}</h3><p>${escape(text)}</p>${action}</div>`;
 export const button = (text, action, cls = "btn-secondary", attrs = "") =>
   `<button type="button" class="btn ${cls}" data-action="${escape(action)}" ${attrs}>${escape(text)}</button>`;
 export const options = (items, value, label, current, blank = "Selecione") =>
@@ -86,3 +88,5 @@ export const panel = (title, body, actions = "") =>
   `<section class="panel"><div class="panel-head"><h2>${escape(title)}</h2>${actions}</div>${body}</section>`;
 export const details = (rows) =>
   `<dl class="details">${rows.map(([key, val]) => `<div><dt>${escape(key)}</dt><dd>${escape(val)}</dd></div>`).join("")}</dl>`;
+export const countLabel = (count, singular, plural) =>
+  `${count} ${count === 1 ? singular : plural}`;

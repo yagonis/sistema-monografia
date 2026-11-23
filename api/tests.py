@@ -224,6 +224,14 @@ class IntegracaoPortalTests(DadosMonografiaTests):
         self.assertContains(resposta, 'portal/portal.css')
         self.assertNotContains(resposta, self.trabalho.titulo)
 
+    def test_portal_carrega_gsap_e_fontes_locais_com_tipo_correto(self):
+        import mimetypes
+        resposta = self.client.get('/')
+        self.assertContains(resposta, 'portal/vendor/gsap.min.js')
+        self.assertContains(resposta, '.woff2')
+        self.assertNotContains(resposta, 'https://')  # sem CDN em runtime
+        self.assertEqual(mimetypes.guess_type('fonte.woff2')[0], 'font/woff2')
+
     def test_conta_informa_capacidades_sem_senha(self):
         self.client.force_login(self.professor)
         dados = self.client.get('/api/conta/').json()['usuario']

@@ -99,10 +99,16 @@ class ProfessorSerializer(serializers.ModelSerializer):
 
 
 class AuditoriaSerializer(serializers.ModelSerializer):
+    ator_nome = serializers.SerializerMethodField()
+
     class Meta:
         from monografias.models import Auditoria
         model = Auditoria
-        fields = ['id', 'ator', 'acao', 'entidade', 'registro_id', 'detalhes', 'criado_em']
+        fields = ['id', 'ator', 'ator_nome', 'acao', 'entidade', 'registro_id', 'detalhes', 'criado_em']
+
+    def get_ator_nome(self, obj) -> str | None:
+        # Tela restrita à administração: o login identifica o responsável quando não há nome cadastrado.
+        return (obj.ator.get_full_name() or obj.ator.username) if obj.ator_id else None
 
 
 class EventoSerializer(serializers.ModelSerializer):
