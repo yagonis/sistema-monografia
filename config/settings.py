@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import mimetypes
 import os
+
+# O registro de tipos do sistema (ex.: Windows) pode não conhecer woff2; o runserver usa mimetypes.
+mimetypes.add_type('font/woff2', '.woff2')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

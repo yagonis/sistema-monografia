@@ -484,12 +484,14 @@ class Relatorios(APIView):
         qs = visiveis(request.user).exclude(status='rascunho')
         total = qs.filter(status__in=['aprovada', 'ressalvas', 'publicada', 'reprovada']).count()
         aprovadas = qs.filter(status__in=['aprovada', 'ressalvas', 'publicada']).count()
-        duracao = Banca.objects.filter(monografia__in=qs, status='realizada', monografia__submetida_em__isnull=False).aggregate(
+        # Defesa anterior à submissão é dado inconsistente: fica fora da média em vez de gerar tempo negativo.
+        duracao = Banca.objects.filter(monografia__in=qs, status='realizada', monografia__submetida_em__isnull=False,
+                                       data_hora__gte=F('monografia__submetida_em')).aggregate(
             media=Avg(ExpressionWrapper(F('data_hora') - F('monografia__submetida_em'), output_field=DurationField())))['media']
         return Response({'por_curso': list(qs.values('curso_id').annotate(total=Count('pk'))),
             'por_orientador': list(qs.values('orientador_id').annotate(total=Count('pk'))),
             'taxa_aprovacao': aprovadas / total if total else None,
-            'tempo_medio_dias': duracao.total_seconds() / 86400 if duracao else None,
+            'tempo_medio_dias': duracao.total_seconds() / 86400 if duracao is not None else None,
             'por_ano_defesa': list(Banca.objects.filter(monografia__in=qs, status='realizada').values('data_hora__year').annotate(total=Count('monografia_id', distinct=True)))})
 
 
@@ -497,7 +499,7 @@ class Auditorias(viewsets.ReadOnlyModelViewSet):
     from .serializers import AuditoriaSerializer
     serializer_class = AuditoriaSerializer
     permission_classes = [Administracao]
-    queryset = Auditoria.objects.order_by('-criado_em', '-pk')
+    queryset = Auditoria.objects.select_related('ator').order_by('-criado_em', '-pk')
 
 
 class Eventos(viewsets.ReadOnlyModelViewSet):

@@ -4,6 +4,7 @@ import {
   tags,
   badge,
   datetimeLocal,
+  countLabel,
 } from "../monografias/static/portal/ui.js";
 import {
   request,
@@ -18,6 +19,9 @@ assert(!tags("<img src=x onerror=alert(1)>").includes("<img"));
 assert(badge("publicada").includes("Publicada"));
 assert(!badge("<img>").includes("<img>"));
 assert.equal(datetimeLocal(null), "");
+assert.equal(countLabel(1, "registro", "registros"), "1 registro");
+assert.equal(countLabel(70, "registro", "registros"), "70 registros");
+assert.equal(countLabel(0, "trabalho", "trabalhos"), "0 trabalhos");
 assert.deepEqual(
   errorMessages(
     new ApiError(400, { titulo: ["Obrigatório"], __all__: ["Revisar"] }),

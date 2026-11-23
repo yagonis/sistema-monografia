@@ -530,6 +530,31 @@ class R07DashboardAuditoria(BaseRequisitos):
         self.assertEqual(dados['taxa_aprovacao'], 1.0)
         self.assertIsNotNone(dados['tempo_medio_dias'])
 
+    def tempo_medio(self, *pares):
+        """Cria monografias com (dias da submissão até a defesa) e retorna tempo_medio_dias."""
+        for i, dias in enumerate(pares):
+            trabalho = self.nova(status='aprovada', titulo=f'Prazo {i}')
+            submissao = timezone.now() - timedelta(days=100)
+            Monografia.objects.filter(pk=trabalho.pk).update(submetida_em=submissao)
+            Banca.objects.create(monografia=trabalho, data_hora=submissao + timedelta(days=dias),
+                                 fim=submissao + timedelta(days=dias, hours=1), local='Sala', status='realizada')
+        return self.como(self.coordenador).get('/api/relatorios/').data['tempo_medio_dias']
+
+    def test_01b_tempo_medio_ignora_defesa_anterior_a_submissao(self):
+        self.assertAlmostEqual(self.tempo_medio(10, 20, -3), 15)
+
+    def test_01c_tempo_medio_so_com_dados_inconsistentes_e_nulo(self):
+        self.assertIsNone(self.tempo_medio(-3))
+
+    def test_02b_auditoria_mostra_nome_do_responsavel(self):
+        admin = get_user_model().objects.create_superuser('adm-aud', 'aud@example.test', 'senha-forte-123')
+        self.como(self.professor).post(f'/api/monografias/{self.trabalho.pk}/aprovar/')
+        s.auditar(None, 'tarefa_automatica', self.trabalho)
+        registros = self.como(admin).get('/api/auditoria/', REMOTE_ADDR='127.0.0.1').data['results']
+        por_acao = {r['acao']: r for r in registros}
+        self.assertEqual(por_acao['aprovacao_orientador']['ator_nome'], 'Orientadora Silva')
+        self.assertIsNone(por_acao['tarefa_automatica']['ator_nome'])
+
     def test_02_auditoria_registra_quem_o_que_quando(self):
         self.como(self.professor).post(f'/api/monografias/{self.trabalho.pk}/aprovar/')
         registro = Auditoria.objects.filter(acao='aprovacao_orientador').latest('pk')

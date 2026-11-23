@@ -4,11 +4,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#183e35">
+    <meta name="theme-color" content="#071d41">
     <meta name="description" content="Consulte a produção acadêmica e acompanhe submissões, orientações e bancas de monografias.">
     <title>Monografias — Repositório acadêmico</title>
     <link rel="icon" href="{% static 'portal/favicon.svg' %}" type="image/svg+xml">
+    {# Fontes OFL locais (Public Sans e Source Serif 4); licenças em portal/fonts/. #}
+    <link rel="preload" href="{% static 'portal/fonts/public-sans-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{% static 'portal/fonts/source-serif-4-latin-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{% static 'portal/portal.css' %}">
+    {# GSAP local (3.12.5); defer mantém a ordem antes do módulo. Sem ele, motion.js não anima. #}
+    <script defer src="{% static 'portal/vendor/gsap.min.js' %}"></script>
     <script type="module" src="{% static 'portal/app.js' %}"></script>
 </head>
 <body>
@@ -18,7 +23,7 @@
     <div class="workspace">
         <header id="topbar" class="topbar"></header>
         <main id="conteudo" tabindex="-1" aria-busy="true"><div class="loading"><span class="spinner"></span>Carregando o portal…</div></main>
-        <footer class="footer"><span>Monografias <span aria-hidden="true">/</span> Repositório acadêmico</span><span>Conhecimento disponível. Pesquisa em movimento.</span></footer>
+        <footer class="footer"><span>Monografias, repositório acadêmico</span><span>Somente trabalhos publicados e autorizados ficam abertos ao público.</span></footer>
     </div>
 </div>
 <div id="notificacoes" class="toast-region" aria-live="polite" aria-atomic="true"></div>

@@ -1,12 +1,12 @@
 # Repositório de Monografias — documentação geral
 
-Atualização: **18/11/2026**. Este é o documento único de escopo, acompanhamento, arquitetura, execução e integração do projeto.
+Atualização: **22/11/2026**. Este é o documento único de escopo, acompanhamento, arquitetura, execução e integração do projeto.
 
 O checklist foi organizado a partir do enunciado **Trabalho de Sistemas Distribuídos**, do professor Alessandro Vivas Andrade, conferido com o código atual. Os identificadores RF, RD e RNF são uma organização do projeto, não uma numeração original do PDF.
 
 **Como interpretar:** `[x]` significa implementado no código; `[ ] Parcial` significa que há implementação com uma parte ainda a concluir ou validar; `[ ] Pendente` significa trabalho ainda não concluído. Implementação e testes locais não comprovam implantação institucional ou capacidade em produção.
 
-Navegação: [Escopo](#1-objetivo-e-escopo-do-pdf) · [Checklist](#2-checklist-funcional-do-pdf-e-situação-atual) · [Pendências](#3-o-que-falta-ou-precisa-ser-confirmado) · [Execução local](#7-executar-localmente) · [Docker](#8-executar-com-docker-compose) · [API](#9-api-httpjson) · [Testes](#11-testes-evidências-e-limites).
+Navegação: [Escopo](#1-objetivo-e-escopo-do-pdf) · [Checklist](#2-checklist-funcional-do-pdf-e-situação-atual) · [Pendências](#3-o-que-falta-ou-precisa-ser-confirmado) · [Execução local](#7-executar-localmente) · [Docker](#8-executar-com-docker-compose) · [API](#9-api-httpjson) · [Testes](#11-testes-evidências-e-limites) · [Mudanças](#12-histórico-de-mudanças).
 
 ## 1. Objetivo e escopo do PDF
 
@@ -401,9 +401,16 @@ Documentos usam multipart com `monografia`, `tipo` e `arquivo`; tipos: `ata`, `t
 | `/#/cadastros` | Administração de contas, perfis, cursos e vínculos |
 | `/#/operacao` | Auditoria e processamento de eventos |
 
-O portal apresenta carregamento, estados vazios, mensagens de erro e confirmações para operações importantes. Não usa dados fictícios como fallback. Os templates antigos continuam disponíveis para compatibilidade. Estilos, SVG e módulos são locais; o frontend não depende de CDN.
+O portal apresenta carregamento, estados vazios, mensagens de erro e confirmações para operações importantes. Não usa dados fictícios como fallback. Os templates antigos continuam disponíveis para compatibilidade. Estilos, SVG, fontes, biblioteca de animação e módulos são locais; o frontend não depende de CDN em tempo de execução.
 
-Arquivos principais: `portal.html` em `monografias/templates/monografias/`; `app.js` para telas/navegação, `api.js` para HTTP/CSRF/downloads, `ui.js` para apresentação e escape HTML e `portal.css` para layout, em `monografias/static/portal/`.
+Arquivos principais: `portal.html` em `monografias/templates/monografias/`; `app.js` para telas/navegação, `api.js` para HTTP/CSRF/downloads, `ui.js` para apresentação e escape HTML, `motion.js` para animações e `portal.css` para layout, em `monografias/static/portal/`.
+
+### Identidade visual e animações
+
+- **Paleta institucional (UFVJM):** tokens em `:root` de `portal.css` — marinho `#071D41` (estrutura), azul `#2969BD`/`#1F57A3` (ações e links), azul claro `#478DEB` (anel de foco) e amarelo `#FFCC4D` (apenas indicação de posição: item ativo, foco da busca). Combinações de texto conferidas em WCAG AA. Somente as cores são usadas; nenhuma marca ou logotipo institucional.
+- **Linguagem visual:** acervo como catálogo (registros numerados, título em serifa, “Assuntos”), ficha do trabalho na lateral, indicadores em faixa única, status com marcador quadrado e texto, abas sublinhadas, raio de 4–6 px e sombra apenas em modal e aviso.
+- **Fontes:** Public Sans (interface) e Source Serif 4 (títulos e resumos), variáveis, em `monografias/static/portal/fonts/`, licença SIL OFL 1.1 (arquivos `OFL-*.txt` ao lado). `config/settings.py` registra `font/woff2` para o servidor de desenvolvimento.
+- **Animações:** GSAP 3.12.5 versionado em `monografias/static/portal/vendor/gsap.min.js`, carregado antes do `app.js`. `motion.js` faz entrada de rota, sequência curta em registros/linhas, contadores, barras de relatório, modal e avisos, animando só `transform`/`opacity` (150–300 ms). Com `prefers-reduced-motion: reduce` nada é animado; sem o arquivo do GSAP o portal funciona sem animação.
 
 ## 11. Testes, evidências e limites
 
@@ -421,8 +428,27 @@ REPOSITORIO_TEST_SQLITE=1 python manage.py test services.repositorio.checks --se
 
 ### Evidências já obtidas
 
-- 124 testes acadêmicos/integração do portal, incluindo `api/test_requisitos.py` (sequência de verificação do enunciado, por seção, e regressões de segurança em `R08Seguranca`), e verificações JavaScript.
+- 128 testes acadêmicos/integração do portal e verificações JavaScript (`scripts/test_frontend.mjs`, incluindo rótulos de contagem).
 - 4 testes do repositório público: chave de integração, ingestão idempotente, filtros (inclusive por identificador) e invalidação de cache.
+
+### Sequência de verificação do enunciado (`api/test_requisitos.py`)
+
+59 testes organizados pelas seções do enunciado. Cada teste afirma o comportamento pedido; uma falha indica divergência com o requisito. Executar com `python manage.py test api.test_requisitos --settings=config.settings_test -v 2`.
+
+| Classe | Cobre |
+| --- | --- |
+| `R01Autenticacao` | Senha com hash e política na API administrativa, rotas restritas, painel por perfil |
+| `R02Submissao` | PDF válido/SHA-256, extensão e conteúdo falsos, PDF com senha, limite de 50 MiB, duplicidade, limite de submissões (429), `upload_em_andamento`, aprovação só pelo orientador, isolamento entre alunos |
+| `R03Banca` | Aprovação prévia, coordenador agenda, link remoto, fluxo completo do membro externo por token, conflito de horário, escala de nota, avaliação alheia, reprovação, revogar/renovar token, banca realizada imutável |
+| `R04Eventos` | Worker: extração de texto + aviso ao orientador, aviso de agendamento, fechamento do resultado, indexação com chave de integração + aviso ao aluno |
+| `R05PublicacaoBusca` | Publicação automática, ressalvas exigem corrigida, acesso público, filtros (título, autor, curso, ano, palavras-chave, nome do orientador), exclusão bloqueada, integridade do arquivo, cache `busca:*` e invalidação, encaminhamento ao repositório e retorno à consulta local, limite público |
+| `R06CrudApi` | `?busca=` e filtros em `/api/monografias/`, edição só de rascunho, CRUD de alunos/professores |
+| `R07DashboardAuditoria` | Indicadores do dashboard, tempo médio sem defesas anteriores à submissão, auditoria com ator, nome do responsável e campos antes/depois |
+| `R08Seguranca` | Limites anônimos ignoram `X-Forwarded-For` forjado, busca não revela username, indexação não envia username, máximo de 8 termos (inclusive antes do repositório) |
+
+### Verificação visual
+
+Telas capturadas em navegador headless com dados de demonstração (visitante, aluno, professor, coordenação e administração; 1440 px e 390 px), sem erros de console nem respostas HTTP ≥ 400. As capturas ficam fora do repositório; os dados de demonstração são locais e não fazem parte do projeto.
 - Validação anterior do backend em PostgreSQL/Redis Docker: 64 testes da versão daquele momento, sem misturar esse resultado histórico com os testes adicionados depois no frontend.
 - Integração anterior real: submissão → RabbitMQ/worker → extração → avaliações 8 e 6 → média 7 → termo/correção → publicação → indexação HTTP no banco público.
 - Navegador com fixtures isoladas: acervo/busca, login, edição/submissão, relatórios, banca do professor, troca de perfil, administração, convite e mensagem de token inválido; layout em 1440 px e 390 px.
@@ -432,3 +458,15 @@ REPOSITORIO_TEST_SQLITE=1 python manage.py test services.repositorio.checks --se
 `scripts/verificar_integracao.py` cria fixtures e exige `VERIFICACAO_ISOLADA=1`; não executar sobre dados pessoais/reais. `scripts/testar_carga_busca.py` reproduz o teste de carga em serviço controlado.
 
 Credenciais, uploads, PDFs e bancos locais são dados operacionais e não integram a documentação consolidada. A exclusão de cópias do índice Git não remove versões já existentes no histórico. Nenhum resultado de teste declara, por si só, que o ambiente pessoal ou institucional está configurado e homologado.
+
+## 12. Histórico de mudanças
+
+### 22/11/2026
+
+- **Busca:** filtros de servidor também em `/api/monografias/`; busca livre exige todos os termos (máximo 8) e inclui nomes de autor e orientador.
+- **Acervo público:** cache Redis `busca:<versão>:<hash>` com invalidação a cada publicação/indexação; encaminhamento ao serviço de repositório quando `REPOSITORIO_URL` está configurada, com retorno à consulta local.
+- **Repositório:** filtros `autor_id`/`orientador_id`; a indexação envia identificadores, nomes e data de publicação, nunca o username.
+- **Limites e segurança:** escopo `publico` (10.000/h por IP) para leitura pública; `NUM_PROXIES = 0` (identificação por `REMOTE_ADDR`).
+- **Correções:** validador de PDF fecha o arquivo armazenado que abriu; tempo médio do dashboard ignora defesas anteriores à submissão; auditoria mostra o nome do responsável; paginação da operação usa “registros”.
+- **Portal:** nova identidade visual com a paleta institucional, fontes locais (OFL) e animações GSAP com respeito a `prefers-reduced-motion`; correções de layout no painel e no celular.
+- **Testes:** `api/test_requisitos.py` (59 testes por seção do enunciado e de segurança) e testes de portal para GSAP/fontes locais.

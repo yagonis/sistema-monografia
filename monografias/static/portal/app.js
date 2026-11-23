@@ -1,4 +1,5 @@
 import { request, all, download, errorMessages } from "./api.js";
+import { motion } from "./motion.js";
 import {
   escape as e,
   icon,
@@ -13,6 +14,7 @@ import {
   tags,
   panel,
   details,
+  countLabel,
 } from "./ui.js";
 const main = document.querySelector("#conteudo");
 const modal = document.querySelector("#modal");
@@ -60,7 +62,8 @@ function toast(text, error = false) {
   n.className = `toast${error ? " error" : ""}`;
   n.textContent = text;
   document.querySelector("#notificacoes").append(n);
-  setTimeout(() => n.remove(), 6000);
+  motion.aviso(n);
+  setTimeout(() => motion.esconder(n).then(() => n.remove()), 6000);
 }
 function showError(error) {
   toast(errorMessages(error).join(" "), true);
@@ -72,6 +75,7 @@ function closeModal() {
 function openModal(title, html, onSubmit, submitText = "Salvar") {
   modal.innerHTML = `<div class="modal-head"><h2 id="modal-titulo">${e(title)}</h2><button class="icon-button" aria-label="Fechar janela" data-action="fechar-modal">${icon("close")}</button></div><div class="modal-body"><form id="modal-form"><div class="form-errors"></div>${html}<div class="form-actions">${button("Cancelar", "fechar-modal")}<button class="btn btn-primary" type="submit">${e(submitText)}</button></div></form></div>`;
   modal.showModal();
+  motion.modal(modal);
   modal.querySelector("form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -114,9 +118,9 @@ function shell(section) {
   const nav = (path, text, symbol, selected) =>
     `<a href="#/${path}" class="nav-item ${selected ? "active" : ""}" ${selected ? 'aria-current="page"' : ""}>${icon(symbol)}${e(text)}</a>`;
   document.querySelector("#sidebar").innerHTML =
-    `<a class="brand" href="#/acervo"><span class="brandmark">M</span><span><strong>Monografias</strong><small>REPOSITÓRIO ACADÊMICO</small></span></a><div class="nav-section">Conhecimento aberto</div>${nav("acervo", "Acervo público", "book", section === "acervo")}${nav("externo", "Acesso à banca", "users", section === "externo")}${state.user ? `<div class="nav-section">Minha área</div>${nav("painel", "Visão geral", "grid", section === "painel")}${nav("trabalhos", role("Alunos") ? "Minhas monografias" : "Monografias", "file", section === "trabalhos")}${nav("bancas", "Bancas e avaliações", "calendar", section === "bancas")}${nav("relatorios", "Relatórios", "chart", section === "relatorios")}${admin() ? `<div class="nav-section">Administração</div>${nav("cadastros", "Cadastros", "users", section === "cadastros")}${nav("operacao", "Auditoria e eventos", "lock", section === "operacao")}` : ""}` : ""}<div class="sidebar-bottom"><div class="side-note"><strong>${icon("leaf")} Pesquisa que permanece.</strong>Um espaço para compartilhar<br>e preservar o conhecimento.</div></div>`;
+    `<a class="brand" href="#/acervo"><strong>Monografias</strong><small>Repositório acadêmico</small></a><div class="nav-section">Consulta pública</div>${nav("acervo", "Acervo público", "book", section === "acervo")}${nav("externo", "Acesso à banca", "users", section === "externo")}${state.user ? `<div class="nav-section">Minha área</div>${nav("painel", "Visão geral", "grid", section === "painel")}${nav("trabalhos", role("Alunos") ? "Minhas monografias" : "Monografias", "file", section === "trabalhos")}${nav("bancas", "Bancas e avaliações", "calendar", section === "bancas")}${nav("relatorios", "Relatórios", "chart", section === "relatorios")}${admin() ? `<div class="nav-section">Administração</div>${nav("cadastros", "Cadastros", "users", section === "cadastros")}${nav("operacao", "Auditoria e eventos", "lock", section === "operacao")}` : ""}` : ""}<div class="sidebar-bottom"><p class="side-note">Trabalhos publicados ficam abertos a qualquer visitante, sem cadastro.</p></div>`;
   document.querySelector("#topbar").innerHTML =
-    `<div class="breadcrumbs"><button class="icon-button mobile-menu" data-action="menu" aria-label="Abrir navegação" aria-expanded="false" aria-controls="sidebar">${icon("menu")}</button><span>Repositório</span><span aria-hidden="true">/</span><span>${e({ acervo: "Acervo público", painel: "Visão geral", trabalhos: "Monografias", bancas: "Bancas e avaliações", relatorios: "Relatórios", login: "Acesso ao sistema", externo: "Acesso à banca", cadastros: "Cadastros", operacao: "Auditoria e eventos" }[section] || "Portal")}</span></div><div class="top-actions">${state.user ? `<span class="profile-text">${e(state.user.nome || state.user.username)}</span><span class="avatar" aria-hidden="true">${icon("user")}</span><button class="icon-button" data-action="logout" aria-label="Sair do sistema">${icon("logout")}</button>` : `<span class="section-label profile-text">Acesso aberto à pesquisa</span>${link("login", `${icon("user")} Entrar no sistema`, "btn btn-primary btn-sm")}`}</div>`;
+    `<div class="breadcrumbs"><button class="icon-button mobile-menu" data-action="menu" aria-label="Abrir navegação" aria-expanded="false" aria-controls="sidebar">${icon("menu")}</button><span>Repositório</span><span aria-hidden="true">/</span><span>${e({ acervo: "Acervo público", painel: "Visão geral", trabalhos: "Monografias", bancas: "Bancas e avaliações", relatorios: "Relatórios", login: "Acesso ao sistema", externo: "Acesso à banca", cadastros: "Cadastros", operacao: "Auditoria e eventos" }[section] || "Portal")}</span></div><div class="top-actions">${state.user ? `<span class="profile-text">${e(state.user.nome || state.user.username)}</span><span class="avatar" aria-hidden="true">${icon("user")}</span><button class="icon-button" data-action="logout" aria-label="Sair do sistema">${icon("logout")}</button>` : section === "login" ? "" : link("login", "Entrar no sistema", "btn btn-secondary btn-sm")}</div>`;
   document.title = `${document.querySelector(".breadcrumbs span:last-child")?.textContent || "Portal"} — Monografias`;
   let backdrop = document.querySelector(".mobile-backdrop");
   if (!backdrop) {
@@ -138,6 +142,7 @@ async function route() {
   document.querySelector(".mobile-backdrop")?.classList.remove("open");
   shell(section);
   main.setAttribute("aria-busy", "true");
+  motion.sair();
   main.innerHTML = `<div class="loading"><span class="spinner"></span>Carregando…</div>`;
   try {
     if (!["acervo", "login", "externo"].includes(section) && !state.user) {
@@ -176,6 +181,7 @@ async function route() {
     main.innerHTML = page.html;
     main.setAttribute("aria-busy", "false");
     page.bind?.();
+    motion.entrar(main);
     main.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "instant" });
   } catch (error) {
@@ -197,22 +203,28 @@ const cards = (items, publicView = false) =>
   items
     .map(
       (w) =>
-        `<article class="result-card"><div class="document-mark">${icon("file")}</div><div class="result-body"><div class="result-meta"><span>${e(courseName(w.curso))}</span><span class="dot"></span><span>${publicView ? "Acesso aberto" : e(labels[w.status] || w.status)}</span></div><h3><a href="#/${publicView ? "acervo" : "trabalhos"}/${w.id}">${e(w.titulo)}</a></h3>${publicView ? `<div class="result-person">${icon("user")}${e(w.autor_nome || "Autoria disponível no documento")}</div>` : ""}<p class="summary">${e(w.resumo || "Resumo não informado.")}</p><div class="result-footer">${tags(w.palavras_chave)}<a class="text-link" href="#/${publicView ? "acervo" : "trabalhos"}/${w.id}">Ver monografia ${icon("arrow")}</a></div></div><span class="result-side">${icon("chevron")}</span></article>`,
+        // Registro de catálogo: número do registro, título, autoria/curso, resumo e assuntos.
+        `<article class="result-card"><span class="record-no" title="Número do registro">Nº ${e(w.id)}</span><div class="result-body"><h3><a href="#/${publicView ? "acervo" : "trabalhos"}/${w.id}">${e(w.titulo)}</a></h3><p class="result-meta">${publicView ? `<span class="result-person">${e(w.autor_nome || "Autoria disponível no documento")}</span>` : ""}<span>${e(courseName(w.curso))}</span>${publicView ? "" : badge(w.status)}</p><p class="summary">${e(w.resumo || "Resumo não informado.")}</p>${tags(w.palavras_chave)}</div></article>`,
     )
     .join("");
-function pagination(data, base, query) {
+function pagination(
+  data,
+  base,
+  query,
+  noun = ["trabalho encontrado", "trabalhos encontrados"],
+) {
   const page = Number(query.get("page") || 1);
   const target = (value) => {
     const q = new URLSearchParams(query);
     q.set("page", value);
     return `${base}?${q}`;
   };
-  return `<div class="pagination"><span>${data.count} ${data.count === 1 ? "trabalho encontrado" : "trabalhos encontrados"}</span><div class="actions">${data.previous ? link(target(page - 1), "Anterior", "btn btn-secondary btn-sm") : ""}<span>Página ${page}</span>${data.next ? link(target(page + 1), "Próxima", "btn btn-secondary btn-sm") : ""}</div></div>`;
+  return `<div class="pagination"><span>${countLabel(data.count, ...noun)}</span><div class="actions">${data.previous ? link(target(page - 1), "Anterior", "btn btn-secondary btn-sm") : ""}<span>Página ${page}</span>${data.next ? link(target(page + 1), "Próxima", "btn btn-secondary btn-sm") : ""}</div></div>`;
 }
 async function archive(query) {
   const data = await request(`/api/publicadas/?${query}`);
   return {
-    html: `<section class="hero"><div><div class="eyebrow">Ciência, memória e novas ideias</div><h1>Conhecimento que vai<br> <em>além da defesa.</em></h1><p>Explore monografias, encontre novas perspectivas e conheça a produção acadêmica disponível para todos.</p></div><div class="hero-art" aria-hidden="true"><div class="archive-art"><div class="art-orbit"></div><div class="art-book book-one"><span>IDEIAS</span></div><div class="art-book book-two"><span>PESQUISA</span></div><div class="art-book book-three"><span>CONHECIMENTO</span></div><span class="art-caption">PRESERVAR · COMPARTILHAR · INSPIRAR</span></div></div></section><section class="search-panel"><form id="search-form" role="search"><div class="search-input-row"><label class="search-field"><span class="sr-only">Pesquisar no acervo</span>${icon("search")}<input name="busca" value="${e(query.get("busca"))}" placeholder="O que você quer descobrir?" maxlength="200"></label><button class="btn btn-primary" type="submit">Pesquisar ${icon("arrow")}</button></div><div class="filters"><label>Curso<select name="curso">${options(state.courses, "id", (x) => x.nome, query.get("curso"), "Todos os cursos")}</select></label><label>Orientador<select name="orientador">${options(state.advisors, "id", (x) => advisorName(x.id), query.get("orientador"), "Todos os orientadores")}</select></label><label>Ano da defesa<input type="number" name="ano_defesa" min="1900" max="9999" value="${e(query.get("ano_defesa"))}" placeholder="Todos os anos"></label><label>Palavras-chave<input name="palavras_chave" value="${e(query.get("palavras_chave"))}" placeholder="Ex.: educação, redes"></label></div><div class="filter-bottom"><span>${icon("lock")} Somente trabalhos publicados e autorizados</span>${query.size || query.toString() ? link("acervo", "Limpar filtros", "text-link") : ""}</div></form></section><div class="result-heading"><div><h2>${query.toString() ? "Resultados da pesquisa" : "Explore a produção acadêmica"}</h2><span class="count">${data.count} ${data.count === 1 ? "trabalho" : "trabalhos"}</span></div><span class="section-label">Acervo público</span></div>${data.results.length ? cards(data.results, true) : empty(query.toString() ? "Nenhum trabalho encontrado" : "O acervo está sendo construído", query.toString() ? "Experimente outros termos ou remova alguns filtros." : "Os trabalhos aparecerão aqui após a defesa e a autorização de publicação.")}${data.count ? pagination(data, "acervo", query) : ""}`,
+    html: `<section class="catalog-head"><h1>Monografias defendidas e publicadas</h1><p>Consulte e baixe os trabalhos de conclusão aprovados em banca e autorizados para publicação pelos autores.</p></section><section class="search-panel"><form id="search-form" role="search"><div class="search-input-row"><label class="search-field"><span class="sr-only">Pesquisar no acervo</span>${icon("search")}<input name="busca" value="${e(query.get("busca"))}" placeholder="Título, autor, orientador ou assunto" maxlength="200"></label><button class="btn btn-primary" type="submit">Pesquisar</button></div><div class="filters"><label>Curso<select name="curso">${options(state.courses, "id", (x) => x.nome, query.get("curso"), "Todos os cursos")}</select></label><label>Orientador<select name="orientador">${options(state.advisors, "id", (x) => advisorName(x.id), query.get("orientador"), "Todos os orientadores")}</select></label><label>Ano da defesa<input type="number" name="ano_defesa" min="1900" max="9999" value="${e(query.get("ano_defesa"))}" placeholder="Todos os anos"></label><label>Palavras-chave<input name="palavras_chave" value="${e(query.get("palavras_chave"))}" placeholder="Ex.: educação, redes"></label></div><div class="filter-bottom"><span>${icon("lock")} Somente trabalhos publicados e autorizados</span>${query.size || query.toString() ? link("acervo", "Limpar filtros", "text-link") : ""}</div></form></section><div class="result-heading"><h2>${query.toString() ? "Resultados da pesquisa" : "Publicados recentemente"}</h2><span class="count">${data.count} ${data.count === 1 ? "trabalho" : "trabalhos"}</span></div>${data.results.length ? cards(data.results, true) : empty(query.toString() ? "Nenhum trabalho encontrado" : "O acervo está sendo construído", query.toString() ? "Experimente outros termos ou remova alguns filtros." : "Os trabalhos aparecerão aqui após a defesa e a autorização de publicação.")}${data.count ? pagination(data, "acervo", query) : ""}`,
     bind: () =>
       document
         .querySelector("#search-form")
@@ -228,22 +240,20 @@ async function archive(query) {
 async function publicDetail(id) {
   const w = await request(`/api/publicadas/${id}/`);
   return {
-    html: `${link("acervo", "← Voltar ao acervo", "text-link")}<div class="section-space split-detail"><article class="panel"><div class="eyebrow">${e(courseName(w.curso))}</div><h1 class="detail-title">${e(w.titulo)}</h1><div class="result-person">${icon("user")}${e(w.autor_nome || "Autoria disponível no documento")}</div><div class="section-space"><h2>Resumo</h2><p class="detail-text section-space">${e(w.resumo || "Resumo não informado.")}</p></div><div class="section-space">${tags(w.palavras_chave)}</div></article><aside>${
-      panel(
-        "Sobre o trabalho",
-        details([
-          ["Curso", courseName(w.curso)],
-          ["Orientação", w.orientador_nome || "Não informada"],
-          ["Publicado em", date(w.publicada_em)],
-        ]),
-      ) +
-      `<button class="btn btn-primary full-width" data-action="download" data-path="/api/publicadas/${w.id}/pdf/" data-name="monografia-${w.id}.pdf">${icon("download")}Baixar monografia</button><p class="notice-inline">Acesso público à versão autorizada do trabalho.</p>`
-    }</aside></div>`,
+    html: `${link("acervo", "Voltar ao acervo", "text-link back-link")}<div class="split-detail work-record"><article class="work-text"><h1 class="detail-title">${e(w.titulo)}</h1><p class="work-author">${e(w.autor_nome || "Autoria disponível no documento")}</p><h2>Resumo</h2><p class="detail-text">${e(w.resumo || "Resumo não informado.")}</p><h2>Assuntos</h2>${tags(w.palavras_chave)}</article><aside class="record-card" aria-label="Ficha do trabalho"><h2>Ficha do trabalho</h2>${details(
+      [
+        ["Registro", `Nº ${w.id}`],
+        ["Autoria", w.autor_nome || "Disponível no documento"],
+        ["Orientação", w.orientador_nome || "Não informada"],
+        ["Curso", courseName(w.curso)],
+        ["Publicado em", date(w.publicada_em)],
+      ],
+    )}<button class="btn btn-primary full-width" data-action="download" data-path="/api/publicadas/${w.id}/pdf/" data-name="monografia-${w.id}.pdf">${icon("download")}Baixar PDF</button><p class="notice-inline">Versão autorizada pelo autor. Quando houve correções após a defesa, o arquivo é a versão corrigida.</p></aside></div>`,
   };
 }
 function login() {
   return {
-    html: `<section class="login-layout"><div class="login-story"><div><div class="eyebrow">Repositório de monografias</div><h1>Do primeiro rascunho<br>à próxima descoberta.</h1><p>Um só lugar para acompanhar seu trabalho, conectar orientações e organizar cada etapa da defesa.</p></div><div class="side-note"><strong>Seu conhecimento tem um caminho.</strong>Vamos percorrê-lo juntos.</div></div><div class="login-form"><h2>Bem-vindo de volta.</h2><p>Entre com sua conta acadêmica para continuar.</p><form id="login-form"><div class="form-errors"></div><label>Usuário<input name="login" required autocomplete="username" placeholder="Seu nome de usuário"></label><label>Senha<div class="password-field"><input name="password" type="password" aria-label="Senha" required autocomplete="current-password" placeholder="Sua senha"><button type="button" class="password-toggle" data-action="mostrar-senha" aria-label="Mostrar senha">Mostrar</button></div></label><button type="submit" class="btn btn-primary">Entrar no sistema ${icon("arrow")}</button></form><p class="notice-inline section-space">Precisa de uma conta ou esqueceu a senha? Entre em contato com a administração do seu curso.</p><a href="#/acervo" class="text-link">Explorar o acervo sem entrar →</a></div></section>`,
+    html: `<section class="login-layout"><div class="login-story"><h1>Área de alunos, orientadores e coordenação</h1><ol class="login-steps"><li>O aluno envia o rascunho em PDF e submete ao orientador.</li><li>O orientador aprova e a banca é agendada.</li><li>Depois da defesa e do termo de autorização, o trabalho entra no acervo público.</li></ol></div><div class="login-form"><h2>Entrar</h2><p>Use a conta fornecida pela coordenação do seu curso.</p><form id="login-form"><div class="form-errors"></div><label>Usuário<input name="login" required autocomplete="username" placeholder="Seu nome de usuário"></label><label>Senha<div class="password-field"><input name="password" type="password" aria-label="Senha" required autocomplete="current-password" placeholder="Sua senha"><button type="button" class="password-toggle" data-action="mostrar-senha" aria-label="Mostrar senha">Mostrar</button></div></label><button type="submit" class="btn btn-primary">Entrar no sistema</button></form><p class="notice-inline section-space">Precisa de uma conta ou esqueceu a senha? Entre em contato com a administração do seu curso.</p><a href="#/acervo" class="text-link">Consultar o acervo sem entrar</a></div></section>`,
     bind: () =>
       document
         .querySelector("#login-form")
@@ -290,14 +300,30 @@ async function dashboard() {
   return {
     html:
       heading(
-        "Minha área",
-        "Cada etapa, um novo avanço.",
-        "Acompanhe suas monografias e os próximos compromissos.",
+        "Visão geral",
+        `Olá, ${state.user.nome || state.user.username}`,
         role("Alunos")
-          ? link("trabalhos/novo", `${icon("plus")} Novo rascunho`)
-          : "",
+          ? "Seus trabalhos, do rascunho à publicação, e as defesas marcadas."
+          : role("Coordenadores")
+            ? "Trabalhos dos cursos sob sua responsabilidade e as próximas defesas."
+            : "Suas orientações e as bancas das quais você participa.",
+        `${link("trabalhos", "Acompanhar monografias", "btn btn-secondary")}${
+          role("Alunos")
+            ? link("trabalhos/novo", `${icon("plus")} Novo rascunho`)
+            : ""
+        }`,
       ) +
-      `<section class="welcome-strip"><div><h2>Olá, ${e(state.user.nome || state.user.username)}.</h2><p>${role("Alunos") ? "Da ideia à publicação, seu trabalho tem espaço aqui." : role("Coordenadores") ? "Acompanhe os trabalhos dos cursos sob sua responsabilidade." : "Acompanhe suas orientações e as bancas das quais você participa."}</p></div>${link("trabalhos", "Acompanhar monografias →", "btn btn-secondary")}</section><div class="stats"><div class="stat dark">${icon("file")}<strong>${works.length}</strong><small>Monografias na sua área</small></div><div class="stat">${icon("book")}<strong>${drafts}</strong><small>Em rascunho</small></div><div class="stat">${icon("user")}<strong>${pending}</strong><small>Aguardando orientação</small></div><div class="stat">${icon("check")}<strong>${published}</strong><small>Publicadas</small></div></div><div class="grid-2">${panel(
+      `<div class="ledger" role="list" aria-label="Resumo das monografias">${[
+        [works.length, "Monografias na sua área"],
+        [drafts, "Em rascunho"],
+        [pending, "Aguardando orientação"],
+        [published, "Publicadas"],
+      ]
+        .map(
+          ([n, label]) =>
+            `<div class="ledger-item" role="listitem"><strong data-count="${n}">${n}</strong><span>${label}</span></div>`,
+        )
+        .join("")}</div><div class="grid-2">${panel(
         "Monografias em acompanhamento",
         works.length
           ? works
@@ -389,7 +415,7 @@ async function draftForm(id) {
     html:
       heading(
         "Submissão",
-        id ? "Editar rascunho" : "Uma nova ideia começa aqui.",
+        id ? "Editar rascunho" : "Novo rascunho",
         "Salve seu trabalho e revise os dados antes de submeter ao orientador.",
       ) +
       `<div class="split-detail"><section class="panel"><form id="draft-form"><div class="form-errors"></div><div class="form-grid"><label class="full">Título da monografia<input name="titulo" value="${e(w.titulo)}" required maxlength="250" placeholder="Dê um título ao seu trabalho"></label><label class="full">Resumo<textarea name="resumo" rows="6" placeholder="Apresente os objetivos, a abordagem e as principais contribuições.">${e(w.resumo)}</textarea></label><label>Curso<select name="curso" required>${options(state.courses, "id", (x) => x.nome, w.curso, "Selecione o curso")}</select></label><label>Orientador<select name="orientador">${options(state.advisors, "id", (x) => advisorName(x.id), w.orientador, "Definir depois")}</select></label><label class="full">Palavras-chave<input name="palavras_chave" value="${e(w.palavras_chave)}" maxlength="500" placeholder="Separe as palavras-chave por vírgulas"></label><label class="full">Arquivo da monografia<input name="arquivo" type="file" accept="application/pdf,.pdf" ${id ? "" : "required"}><small class="help">PDF sem senha, até 50 MiB.${id ? " Deixe vazio para manter o arquivo atual." : ""}</small></label></div><div class="form-actions">${link(id ? `trabalhos/${id}` : "trabalhos", "Cancelar", "btn btn-secondary")}<button class="btn btn-primary" type="submit">${icon("check")} Salvar rascunho</button></div></form></section><aside>${panel("Antes de enviar", `<ol class="step-list"><li class="done">Preencha os dados<small>Título, curso e informações do trabalho.</small></li><li>Envie seu PDF<small>Você pode substituí-lo enquanto for rascunho.</small></li><li>Escolha o orientador<small>Obrigatório para realizar a submissão.</small></li><li>Revise e submeta<small>Após submeter, a edição será bloqueada.</small></li></ol>`)}</aside></div>`,
@@ -433,8 +459,8 @@ async function workDetail(id) {
   const actions = `${mine && w.status === "rascunho" ? `${link(`trabalhos/${w.id}/editar`, "Editar", "btn btn-secondary")}${button("Submeter ao orientador", "submeter", "btn-primary", `data-id="${w.id}"`)}${button("Excluir rascunho", "excluir-trabalho", "btn-danger", `data-id="${w.id}"`)}` : ""}${role("Professores") && w.orientador === state.user.id && w.status === "em_avaliacao" ? button("Aprovar submissão", "aprovar", "btn-primary", `data-id="${w.id}"`) : ""}${manager && w.status === "aprovada_orientador" && !defenses.some((b) => b.status !== "cancelada") ? button("Preparar banca", "nova-banca", "btn-primary", `data-id="${w.id}"`) : ""}`;
   return {
     html:
-      link("trabalhos", "← Voltar às monografias", "text-link") +
-      `<div class="section-space page-heading"><div>${badge(w.status)}<h1 class="detail-title">${e(w.titulo)}</h1><p>${e(courseName(w.curso))} · Orientação: ${e(advisorName(w.orientador))}</p></div><div class="actions">${actions}</div></div><div class="split-detail"><div>${panel("Resumo", `<p class="detail-text">${e(w.resumo || "Resumo não informado.")}</p><div class="section-space">${tags(w.palavras_chave)}</div>`)}${panel("Documentos", `<p class="notice-inline">Envie atas, termo de autorização, comprovantes e a versão corrigida. A publicação depende das validações exigidas.</p>${documents.length ? `<div class="table-wrap"><table><thead><tr><th>Documento</th><th>Conferência</th><th>Ações</th></tr></thead><tbody>${documents.map((d) => `<tr><td>${e({ ata: "Ata de defesa", termo: "Termo de autorização", ortografia: "Revisão ortográfica", corrigida: "Versão corrigida" }[d.tipo])}</td><td>${d.validado_em ? `<span class="badge green">Validado</span><small class="block">${date(d.validado_em)}</small>` : '<span class="badge amber">Aguardando validação</span>'}</td><td><div class="actions">${button("Baixar", "download", "btn-secondary btn-sm", `data-path="/api/documentos/${d.id}/pdf/" data-name="documento-${d.id}.pdf"`)}${manager && !d.validado_em && w.status !== "publicada" ? button("Validar", "validar-documento", "btn-primary btn-sm", `data-id="${d.id}"`) : ""}</div></td></tr>`).join("")}</tbody></table></div>` : empty("Nenhum documento enviado", "Adicione os documentos desta monografia quando estiverem disponíveis.")}`, (mine || manager) && w.status !== "publicada" ? button("Enviar documento", "enviar-documento", "btn-secondary btn-sm", `data-id="${w.id}"`) : "")}${panel("Bancas vinculadas", defenses.length ? defenses.map((b) => `<a class="list-item" href="#/bancas/${b.id}"><span class="list-symbol">${icon("calendar")}</span><span><strong>${date(b.data_hora, true)}</strong><small>${e(b.local || "Defesa remota")}</small></span>${badge(b.status)}</a>`).join("") : empty("A defesa ainda não foi preparada", "O orientador ou coordenador poderá preparar a banca após a aprovação da submissão."))}</div><aside>${panel(
+      link("trabalhos", "Voltar às monografias", "text-link back-link") +
+      `<div class="section-space page-heading"><div>${badge(w.status)}<h1 class="detail-title">${e(w.titulo)}</h1><p>${e(courseName(w.curso))}. Orientação: ${e(advisorName(w.orientador))}</p></div><div class="actions">${actions}</div></div><div class="split-detail"><div>${panel("Resumo", `<p class="detail-text">${e(w.resumo || "Resumo não informado.")}</p><div class="section-space">${tags(w.palavras_chave)}</div>`)}${panel("Documentos", `<p class="notice-inline">Envie atas, termo de autorização, comprovantes e a versão corrigida. A publicação depende das validações exigidas.</p>${documents.length ? `<div class="table-wrap"><table><thead><tr><th>Documento</th><th>Conferência</th><th>Ações</th></tr></thead><tbody>${documents.map((d) => `<tr><td>${e({ ata: "Ata de defesa", termo: "Termo de autorização", ortografia: "Revisão ortográfica", corrigida: "Versão corrigida" }[d.tipo])}</td><td>${d.validado_em ? `<span class="badge green">Validado</span><small class="block">${date(d.validado_em)}</small>` : '<span class="badge amber">Aguardando validação</span>'}</td><td><div class="actions">${button("Baixar", "download", "btn-secondary btn-sm", `data-path="/api/documentos/${d.id}/pdf/" data-name="documento-${d.id}.pdf"`)}${manager && !d.validado_em && w.status !== "publicada" ? button("Validar", "validar-documento", "btn-primary btn-sm", `data-id="${d.id}"`) : ""}</div></td></tr>`).join("")}</tbody></table></div>` : empty("Nenhum documento enviado", "Adicione os documentos desta monografia quando estiverem disponíveis.")}`, (mine || manager) && w.status !== "publicada" ? button("Enviar documento", "enviar-documento", "btn-secondary btn-sm", `data-id="${w.id}"`) : "")}${panel("Bancas vinculadas", defenses.length ? defenses.map((b) => `<a class="list-item" href="#/bancas/${b.id}"><span class="list-symbol">${icon("calendar")}</span><span><strong>${date(b.data_hora, true)}</strong><small>${e(b.local || "Defesa remota")}</small></span>${badge(b.status)}</a>`).join("") : empty("A defesa ainda não foi preparada", "O orientador ou coordenador poderá preparar a banca após a aprovação da submissão."))}</div><aside>${panel(
         "Arquivo da monografia",
         `<div class="actions">${button("Baixar PDF", "download", "btn-primary", `data-path="/api/monografias/${w.id}/pdf/" data-name="monografia-${w.id}.pdf"`)}</div>${details(
           [
@@ -483,7 +509,7 @@ async function defenses() {
       panel(
         "Agenda de defesas",
         bancas.length
-          ? `<div class="table-wrap"><table><thead><tr><th>Monografia</th><th>Data e hora</th><th>Status</th><th></th></tr></thead><tbody>${bancas.map((b) => `<tr><td><strong>${e(b.monografia_titulo)}</strong><small class="block">${e(b.local || "Defesa remota")}</small></td><td>${date(b.data_hora, true)}</td><td>${badge(b.status)}</td><td>${link(`bancas/${b.id}`, "Acompanhar →", "text-link")}</td></tr>`).join("")}</tbody></table></div>`
+          ? `<div class="table-wrap"><table><thead><tr><th>Monografia</th><th>Data e hora</th><th>Status</th><th></th></tr></thead><tbody>${bancas.map((b) => `<tr><td><strong>${e(b.monografia_titulo)}</strong><small class="block">${e(b.local || "Defesa remota")}</small></td><td>${date(b.data_hora, true)}</td><td>${badge(b.status)}</td><td>${link(`bancas/${b.id}`, "Acompanhar", "text-link")}</td></tr>`).join("")}</tbody></table></div>`
           : empty(
               "Nenhuma banca por enquanto",
               "As propostas de defesa e os convites para você aparecerão aqui.",
@@ -510,15 +536,15 @@ async function defenseDetail(id) {
     ended = b.fim && new Date(b.fim) <= new Date();
   return {
     html:
-      link("bancas", "← Voltar à agenda", "text-link") +
-      `<div class="section-space page-heading"><div><div class="eyebrow">Defesa de monografia</div><h1 class="detail-title">${e(b.monografia_titulo)}</h1><div class="actions">${badge(b.status)}${b.nota_final !== null ? `<span>Média final: <strong>${e(b.nota_final)}</strong></span>` : ""}</div></div><div class="actions">${my && ended && b.status === "agendada" && !b.encerrada_em ? button("Registrar avaliação", "avaliar", "btn-primary", `data-id="${my.id}"`) : ""}${manager && ["em_preparacao", "agendada"].includes(b.status) && !b.encerrada_em ? `${button("Editar banca", "editar-banca", "btn-secondary", `data-id="${b.id}"`)}${b.status === "em_preparacao" ? button("Agendar defesa", "agendar", "btn-primary", `data-id="${b.id}"`) : ""}${button("Cancelar banca", "cancelar-banca", "btn-danger", `data-id="${b.id}"`)}` : ""}</div></div><div class="grid-2">${panel(
+      link("bancas", "Voltar à agenda", "text-link back-link") +
+      `<div class="section-space page-heading"><div><h1 class="detail-title">${e(b.monografia_titulo)}</h1><div class="actions">${badge(b.status)}${b.nota_final !== null ? `<span>Média final: <strong>${e(b.nota_final)}</strong></span>` : ""}</div></div><div class="actions">${my && ended && b.status === "agendada" && !b.encerrada_em ? button("Registrar avaliação", "avaliar", "btn-primary", `data-id="${my.id}"`) : ""}${manager && ["em_preparacao", "agendada"].includes(b.status) && !b.encerrada_em ? `${button("Editar banca", "editar-banca", "btn-secondary", `data-id="${b.id}"`)}${b.status === "em_preparacao" ? button("Agendar defesa", "agendar", "btn-primary", `data-id="${b.id}"`) : ""}${button("Cancelar banca", "cancelar-banca", "btn-danger", `data-id="${b.id}"`)}` : ""}</div></div><div class="grid-2">${panel(
         "Informações da defesa",
         details([
           ["Início", date(b.data_hora, true)],
           ["Fim", date(b.fim, true)],
           ["Local", b.local || "Defesa remota"],
         ]) +
-          `${b.link ? `<p class="section-space"><a class="btn btn-secondary" href="${e(safeHttp(b.link))}" target="_blank" rel="noopener noreferrer">Abrir videoconferência ↗</a></p>` : ""}${work ? `<p class="section-space">${link(`trabalhos/${b.monografia}`, "Ver monografia →", "text-link")}</p>` : ""}`,
+          `${b.link ? `<p class="section-space"><a class="btn btn-secondary" href="${e(safeHttp(b.link))}" target="_blank" rel="noopener noreferrer">Abrir videoconferência</a></p>` : ""}${work ? `<p class="section-space">${link(`trabalhos/${b.monografia}`, "Ver monografia", "text-link")}</p>` : ""}`,
       )}${panel("Próxima etapa", b.status === "em_preparacao" ? `<div class="info-box">A defesa só poderá ser agendada após a confirmação de todos os membros. Qualquer alteração de horário ou local exige novas confirmações.</div>${my && !my.confirmado ? button("Confirmar minha disponibilidade", "confirmar-membro", "btn-primary", `data-id="${my.id}"`) : my?.confirmado ? '<span class="badge green">Sua disponibilidade foi confirmada</span>' : '<p class="subtle">Aguardando composição e confirmações da banca.</p>'}` : b.status === "agendada" ? `<p class="subtle">${ended ? "A defesa terminou. Os membros podem registrar suas avaliações." : "A avaliação ficará disponível após o horário de término da defesa."}</p>${my && ended && !b.encerrada_em ? button(grades.some((a) => a.membro === my.id) ? "Editar minha avaliação" : "Registrar avaliação", "avaliar", "btn-primary section-space", `data-id="${my.id}"`) : ""}` : b.status === "realizada" ? `<div class="info-box">O resultado foi fechado em ${date(b.encerrada_em, true)}. As avaliações não podem mais ser alteradas.</div>` : '<p class="subtle">Esta banca foi cancelada. Os convites foram revogados.</p>')}</div>${panel("Membros da banca", list.length ? `<div class="table-wrap"><table><thead><tr><th>Membro</th><th>Participação</th><th>Disponibilidade</th><th>Ações</th></tr></thead><tbody>${list.map((m) => `<tr><td><strong>${e(m.usuario ? advisorName(m.usuario) : m.nome)}</strong><small class="block">${m.usuario ? "Membro interno" : e(m.email)}</small></td><td>${m.usuario ? "Professor" : "Convidado externo"}</td><td>${m.revogado ? '<span class="badge red">Revogado</span>' : m.confirmado ? '<span class="badge green">Confirmada</span>' : '<span class="badge amber">Pendente</span>'}</td><td><div class="actions">${m.usuario === state.user.id && !m.confirmado && b.status === "em_preparacao" ? button("Confirmar", "confirmar-membro", "btn-primary btn-sm", `data-id="${m.id}"`) : ""}${manager && !m.usuario && ["em_preparacao", "agendada"].includes(b.status) ? button("Renovar acesso", "renovar-token", "btn-secondary btn-sm", `data-id="${m.id}"`) : ""}${manager && b.status === "em_preparacao" ? button("Remover", "remover-membro", "btn-danger btn-sm", `data-id="${m.id}"`) : ""}${manager && !m.usuario && !m.revogado && b.status === "agendada" ? button("Revogar acesso", "revogar-token", "btn-danger btn-sm", `data-id="${m.id}"`) : ""}</div></td></tr>`).join("")}</tbody></table></div>` : empty("A banca ainda não tem membros", "Convide professores ou membros externos para compor a banca."), manager && b.status === "em_preparacao" ? button("Convidar membro", "convidar", "btn-secondary btn-sm", `data-id="${b.id}"`) : "")}${panel(
         "Avaliações",
         list.some((m) => grades.some((a) => a.membro === m.id))
@@ -586,6 +612,7 @@ function inviteForm(id) {
 function showToken(token, expires) {
   modal.innerHTML = `<div class="modal-head"><h2 id="modal-titulo">Acesso temporário à banca</h2><button class="icon-button" data-action="fechar-modal" aria-label="Fechar janela">${icon("close")}</button></div><div class="modal-body"><p>Compartilhe este código privadamente com o convidado. Ele será informado na opção <strong>Acesso à banca</strong> do portal.</p><div class="token-box" id="generated-token">${e(token)}</div><p class="notice-inline">Válido até ${date(expires, true)}. O código não será exibido novamente após fechar esta janela.</p><div class="actions">${button("Copiar código", "copiar-token", "btn-primary")}${button("Concluir", "fechar-modal")}</div></div>`;
   modal.showModal();
+  motion.modal(modal);
 }
 async function refreshBehindModal() {
   /* A lista será atualizada após fechar a janela, sem descartar o token. */ state.refreshOnClose = true;
@@ -690,13 +717,13 @@ async function external() {
         "Sua participação faz a diferença.",
         "Consulte a defesa e registre sua contribuição.",
       ) +
-      `<section class="panel external-card"><div class="eyebrow">Defesa de monografia</div><h2 class="detail-title">${e(data.titulo)}</h2>${details(
+      `<section class="panel external-card"><h2 class="detail-title">${e(data.titulo)}</h2>${details(
         [
           ["Início", date(data.data_hora, true)],
           ["Fim", date(data.fim, true)],
           ["Local", data.local || "Defesa remota"],
         ],
-      )}${data.link ? `<p class="section-space"><a class="text-link" href="${e(safeHttp(data.link))}" target="_blank" rel="noopener noreferrer">Abrir videoconferência ↗</a></p>` : ""}<div class="section-space">${badge(data.status)}${data.confirmado ? '<span class="badge green">Disponibilidade confirmada</span>' : ""}</div><div class="actions section-space">${data.status === "em_preparacao" && !data.confirmado ? button("Confirmar disponibilidade", "confirmar-externo", "btn-primary") : ""}${["agendada", "realizada"].includes(data.status) ? button("Baixar PDF", "pdf-externo") : ""}${data.status === "agendada" && data.fim && new Date(data.fim) <= new Date() && !data.encerrada_em ? button(data.avaliacao ? "Editar minha avaliação" : "Registrar avaliação", "avaliar-externo", "btn-primary", `data-id="${data.membro}"`) : ""}</div><p class="notice-inline">${data.encerrada_em ? "O resultado foi fechado. As avaliações não podem mais ser alteradas." : data.status === "agendada" ? "A avaliação fica disponível após o término da defesa e antes do fechamento do resultado." : "Confirme sua disponibilidade para que o responsável possa concluir o agendamento."}</p>${button("Atualizar situação", "atualizar", "btn-ghost")}<div class="section-space">${button("Encerrar acesso temporário", "sair-externo", "btn-ghost")}</div></section>`,
+      )}${data.link ? `<p class="section-space"><a class="text-link" href="${e(safeHttp(data.link))}" target="_blank" rel="noopener noreferrer">Abrir videoconferência</a></p>` : ""}<div class="section-space">${badge(data.status)}${data.confirmado ? '<span class="badge green">Disponibilidade confirmada</span>' : ""}</div><div class="actions section-space">${data.status === "em_preparacao" && !data.confirmado ? button("Confirmar disponibilidade", "confirmar-externo", "btn-primary") : ""}${["agendada", "realizada"].includes(data.status) ? button("Baixar PDF", "pdf-externo") : ""}${data.status === "agendada" && data.fim && new Date(data.fim) <= new Date() && !data.encerrada_em ? button(data.avaliacao ? "Editar minha avaliação" : "Registrar avaliação", "avaliar-externo", "btn-primary", `data-id="${data.membro}"`) : ""}</div><p class="notice-inline">${data.encerrada_em ? "O resultado foi fechado. As avaliações não podem mais ser alteradas." : data.status === "agendada" ? "A avaliação fica disponível após o término da defesa e antes do fechamento do resultado." : "Confirme sua disponibilidade para que o responsável possa concluir o agendamento."}</p>${button("Atualizar situação", "atualizar", "btn-ghost")}<div class="section-space">${button("Encerrar acesso temporário", "sair-externo", "btn-ghost")}</div></section>`,
   };
 }
 async function reports() {
@@ -713,11 +740,11 @@ async function reports() {
   return {
     html:
       heading(
-        "Indicadores acadêmicos",
-        "Pesquisa em perspectiva.",
+        "Relatórios",
+        "Indicadores das monografias",
         "Dados limitados aos trabalhos que você tem permissão para consultar.",
       ) +
-      `<div class="stats"><div class="stat dark">${icon("check")}<strong>${data.taxa_aprovacao === null ? "—" : new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(data.taxa_aprovacao)}</strong><small>Taxa de aprovação entre resultados fechados</small></div><div class="stat">${icon("calendar")}<strong>${data.tempo_medio_dias === null ? "—" : Number(data.tempo_medio_dias).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</strong><small>Dias em média entre submissão e defesa</small></div></div><div class="grid-2">${panel("Monografias por curso", chart(data.por_curso, "curso_id", courseName))}${panel("Monografias por orientador", chart(data.por_orientador, "orientador_id", advisorName))}</div>${panel(
+      `<div class="ledger ledger-2" role="list" aria-label="Indicadores"><div class="ledger-item" role="listitem"><strong>${data.taxa_aprovacao === null ? "—" : new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 1 }).format(data.taxa_aprovacao)}</strong><span>Taxa de aprovação entre resultados fechados</span></div><div class="ledger-item" role="listitem"><strong>${data.tempo_medio_dias === null ? "—" : Number(data.tempo_medio_dias).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}</strong><span>Dias em média entre submissão e defesa${data.tempo_medio_dias === null ? " (ainda sem defesas com data de submissão)" : ""}</span></div></div><div class="grid-2">${panel("Monografias por curso", chart(data.por_curso, "curso_id", courseName))}${panel("Monografias por orientador", chart(data.por_orientador, "orientador_id", advisorName))}</div>${panel(
         "Defesas realizadas por ano",
         chart(data.por_ano_defesa, "data_hora__year", (x) => x),
       )}`,
@@ -861,7 +888,7 @@ async function operation(query) {
   const html =
     type === "eventos"
       ? `<table><thead><tr><th>Evento</th><th>Criado em</th><th>Situação</th><th>Ações</th></tr></thead><tbody>${data.results.map((x) => `<tr><td>${e(x.tipo.replaceAll("_", " "))}<small class="block">#${x.id} · ${x.tentativas} tentativas</small></td><td>${date(x.criado_em, true)}</td><td>${x.processado_em ? '<span class="badge green">Concluído</span>' : x.erro ? `<span class="badge red">Falha: ${e(x.erro)}</span>` : '<span class="badge amber">Pendente</span>'}</td><td>${!x.processado_em ? button("Tentar novamente", "repetir-evento", "btn-secondary btn-sm", `data-id="${x.id}"`) : ""}</td></tr>`).join("")}</tbody></table>`
-      : `<table><thead><tr><th>Ação</th><th>Registro</th><th>Data e hora</th><th>Detalhes</th></tr></thead><tbody>${data.results.map((x) => `<tr><td>${e(x.acao.replaceAll("_", " "))}<small class="block">${x.ator ? `Responsável #${x.ator}` : "Automático"}</small></td><td>${e(x.entidade)} #${x.registro_id}</td><td>${date(x.criado_em, true)}</td><td><details><summary>Ver alterações</summary><pre class="audit-data">${e(JSON.stringify(x.detalhes, null, 2))}</pre></details></td></tr>`).join("")}</tbody></table>`;
+      : `<table><thead><tr><th>Ação</th><th>Registro</th><th>Data e hora</th><th>Detalhes</th></tr></thead><tbody>${data.results.map((x) => `<tr><td>${e(x.acao.replaceAll("_", " "))}<small class="block">${x.ator ? `Responsável: ${e(x.ator_nome || `#${x.ator}`)}` : "Sistema"}</small></td><td>${e(x.entidade)} #${x.registro_id}</td><td>${date(x.criado_em, true)}</td><td><details><summary>Ver alterações</summary><pre class="audit-data">${e(JSON.stringify(x.detalhes, null, 2))}</pre></details></td></tr>`).join("")}</tbody></table>`;
   return {
     html:
       heading(
@@ -879,7 +906,10 @@ async function operation(query) {
               "Os registros de acompanhamento aparecerão aqui.",
             ),
       ) +
-      pagination(data, "operacao", new URLSearchParams({ tipo: type, page })),
+      pagination(data, "operacao", new URLSearchParams({ tipo: type, page }), [
+        "registro encontrado",
+        "registros encontrados",
+      ]),
   };
 }
 const actions = {
