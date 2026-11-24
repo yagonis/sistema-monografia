@@ -201,7 +201,9 @@ def agendar(usuario, pk):
     if banca.status != Banca.Status.EM_PREPARACAO or banca.monografia.status != Monografia.Status.APROVADA_ORIENTADOR:
         raise ValidationError('Banca não pode ser agendada neste estado.')
     membros = list(banca.membros.order_by('pk'))
-    if not membros or any(not m.confirmado or m.revogado for m in membros):
+    if len(membros) < settings.BANCA_MINIMO_MEMBROS:
+        raise ValidationError(f'A banca exige pelo menos {settings.BANCA_MINIMO_MEMBROS} membros.')
+    if any(not m.confirmado or m.revogado for m in membros):
         raise ValidationError('Todos os membros precisam confirmar disponibilidade.')
     if any(m.usuario_id and not m.usuario.eh_professor for m in membros):
         raise ValidationError('Um membro interno não está mais ativo como professor.')
@@ -279,7 +281,7 @@ def fechar_resultado(pk):
     banca.nota_final = sum(a.nota for a in avaliacoes) / len(avaliacoes)
     recomendacoes = {a.recomendacao for a in avaliacoes}
     trabalho = Monografia.objects.select_for_update().get(pk=banca.monografia_id)
-    if 'reprovado' in recomendacoes:
+    if banca.nota_final < settings.NOTA_MINIMA_APROVACAO or 'reprovado' in recomendacoes:
         trabalho.status = Monografia.Status.REPROVADA
     elif 'ressalvas' in recomendacoes:
         trabalho.status = Monografia.Status.RESSALVAS

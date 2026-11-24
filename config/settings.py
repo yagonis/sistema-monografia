@@ -199,3 +199,22 @@ CELERY_WORKER_MAX_TASKS_PER_CHILD = 50
 ADMIN_NETWORKS = os.environ.get('ADMIN_NETWORKS', '127.0.0.1/32,::1/128').split(',')
 REPOSITORIO_URL = os.environ.get('REPOSITORIO_URL', '')
 REPOSITORIO_INTEGRATION_KEY = os.environ.get('REPOSITORIO_INTEGRATION_KEY', '')
+
+# SMTP opcional para desenvolvimento e Compose; sem host, mantém o console.
+if os.environ.get('SMTP_HOST'):
+    MAILERS = {'default': {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': os.environ['SMTP_HOST'],
+            'port': int(os.environ.get('SMTP_PORT', '587')),
+            'username': os.environ.get('SMTP_USER', ''),
+            'password': os.environ.get('SMTP_PASSWORD', ''),
+            'use_tls': os.environ.get('SMTP_USE_TLS', '1') == '1',
+            'timeout': 15,
+        },
+    }}
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'webmaster@localhost')
+
+# Política acadêmica de demonstração.
+BANCA_MINIMO_MEMBROS = int(os.environ.get("BANCA_MINIMO_MEMBROS", "3"))
+NOTA_MINIMA_APROVACAO = 6
