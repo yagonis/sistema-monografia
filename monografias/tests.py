@@ -16,6 +16,7 @@ from .models import Curso, Monografia
 from .validadores import validar_pdf
 
 
+@override_settings(BANCA_MINIMO_MEMBROS=1)
 class DadosMonografiaTests(TestCase):
     @classmethod
     def setUpTestData(cls):
