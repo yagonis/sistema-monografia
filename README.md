@@ -1,4 +1,5 @@
 # Repositório de Monografias — documentação geral
+##Integrantes - Maria Vieira, Miguel Moreira, Ian Patrick e Yago Brito
 
 Atualização: **22/11/2026**. Este é o documento único de escopo, acompanhamento, arquitetura, execução e integração do projeto.
 
